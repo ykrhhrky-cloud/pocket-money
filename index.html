@@ -94,11 +94,11 @@
 
         <!-- スプレッドシート連携ステータス & 設定ボタン -->
         <div class="flex items-center space-x-1.5">
-          <button id="btnQuickSync" onclick="syncWithSpreadsheet()" class="px-2.5 py-1.5 rounded-full text-xs font-medium bg-slate-100 active:bg-slate-200 text-slate-700 flex items-center space-x-1 border border-slate-200/70 transition">
+          <button id="btnQuickSync" onclick="openSyncModal()" class="px-2.5 py-1.5 rounded-full text-xs font-semibold bg-blue-50 active:bg-blue-100 text-blue-700 flex items-center space-x-1 border border-blue-200 transition">
             <svg id="syncIcon" class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
-            <span id="syncText">同期</span>
+            <span id="syncText">同期メニュー</span>
           </button>
           <button onclick="switchView('settings')" class="p-2 rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition active:scale-95">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -288,7 +288,7 @@
             </div>
             <div>
               <h2 class="text-base font-bold text-slate-900">Googleスプレッドシート連携</h2>
-              <p class="text-xs text-slate-500">自分だけのクラウドDBとして完全同期</p>
+              <p class="text-xs text-slate-500">双方向でデータを完全にやり取り</p>
             </div>
           </div>
 
@@ -304,6 +304,15 @@
               </button>
               <button onclick="testGasConnection()" class="px-4 py-2.5 bg-slate-100 active:bg-slate-200 text-slate-700 rounded-xl font-medium transition">
                 接続テスト
+              </button>
+            </div>
+
+            <div class="pt-2 border-t border-slate-100 flex space-x-2">
+              <button onclick="loadFromSpreadsheet()" class="flex-1 py-2.5 bg-emerald-600 active:bg-emerald-700 text-white rounded-xl font-semibold shadow-sm transition flex items-center justify-center space-x-1">
+                <span>📥 スプシから読み込み</span>
+              </button>
+              <button onclick="uploadToSpreadsheet()" class="flex-1 py-2.5 bg-slate-700 active:bg-slate-800 text-white rounded-xl font-semibold shadow-sm transition flex items-center justify-center space-x-1">
+                <span>📤 スプシへ送信</span>
               </button>
             </div>
           </div>
@@ -356,6 +365,53 @@
     </nav>
 
     <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleReceiptSelected(event)">
+  </div>
+
+  <!-- MODAL: スプレッドシート同期メニュー -->
+  <div id="syncModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4">
+      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+        <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
+          <span>📊</span>
+          <span>スプレッドシート同期</span>
+        </h3>
+        <button onclick="closeModal('syncModal')" class="p-1 text-slate-400 hover:text-slate-600">✕</button>
+      </div>
+
+      <div class="space-y-3">
+        <!-- 読み込みボタン -->
+        <button onclick="loadFromSpreadsheet()" class="w-full p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-left hover:bg-emerald-100/70 transition active:scale-98">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-bold text-emerald-800 flex items-center space-x-1.5">
+              <span>📥</span>
+              <span>スプレッドシートから読み込む</span>
+            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-200/80 text-emerald-800 font-bold">PC → スマホ</span>
+          </div>
+          <p class="text-xs text-emerald-700/90 leading-relaxed">
+            パソコンのスプレッドシートで手入力・編集した明細をスマホアプリに取り込みます。
+          </p>
+        </button>
+
+        <!-- 書き出しボタン -->
+        <button onclick="uploadToSpreadsheet()" class="w-full p-4 rounded-2xl bg-blue-50 border border-blue-200 text-left hover:bg-blue-100/70 transition active:scale-98">
+          <div class="flex items-center justify-between mb-1">
+            <span class="text-sm font-bold text-blue-800 flex items-center space-x-1.5">
+              <span>📤</span>
+              <span>スプレッドシートへ送信する</span>
+            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-200/80 text-blue-800 font-bold">スマホ → PC</span>
+          </div>
+          <p class="text-xs text-blue-700/90 leading-relaxed">
+            スマホ内の最新データ（レシート・手入力）をスプレッドシートに保存（上書き更新）します。
+          </p>
+        </button>
+      </div>
+
+      <div class="pt-1">
+        <button onclick="closeModal('syncModal')" class="w-full py-2.5 bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold">閉じる</button>
+      </div>
+    </div>
   </div>
 
   <!-- MODAL: レシートAI解析 -->
@@ -526,13 +582,15 @@
 
   <!-- JAVASCRIPT LOGIC -->
   <script>
+    // 支出科目（嗜好品を追加、娯楽・ホビーを趣味・娯楽へ変更）
     const EXPENSE_CATEGORIES = [
       { name: '食費', icon: '🍱', color: '#FF9500' },
       { name: '外食・カフェ', icon: '☕', color: '#FF2D55' },
       { name: '日用品', icon: '🧴', color: '#5856D6' },
+      { name: '嗜好品', icon: '🚬', color: '#8D6E63' }, // タバコ・お酒など
+      { name: '趣味・娯楽', icon: '🎮', color: '#5AC8FA' },
       { name: '交際費', icon: '🍻', color: '#AF52DE' },
       { name: '交通費', icon: '🚃', color: '#007AFF' },
-      { name: '娯楽・ホビー', icon: '🎮', color: '#5AC8FA' },
       { name: '通信・光熱', icon: '📱', color: '#34C759' },
       { name: '衣服・美容', icon: '👕', color: '#E55934' },
       { name: 'その他', icon: '📦', color: '#8E8E93' },
@@ -679,12 +737,12 @@
 
       recurringRules = [
         { id: 'rec_1', type: 'income', name: '毎月のお小遣い', amount: 30000, day: 25, category: 'お小遣い', lastAppliedMonth: `${currentYear}-${currentMonth}` },
-        { id: 'rec_2', type: 'expense', name: '音楽サブスク', amount: 1080, day: 10, category: '娯楽・ホビー', lastAppliedMonth: `${currentYear}-${currentMonth}` }
+        { id: 'rec_2', type: 'expense', name: '音楽サブスク', amount: 1080, day: 10, category: '趣味・娯楽', lastAppliedMonth: `${currentYear}-${currentMonth}` }
       ];
 
       transactions = [
         { id: 'tx_1', date: `${currentYear}-${currentMonth}-01`, type: 'income', category: 'お小遣い', title: '今月のお小遣い', amount: 30000, memo: '定期入金' },
-        { id: 'tx_2', date: `${currentYear}-${currentMonth}-02`, type: 'expense', category: '食費', title: 'セブン-イレブン', amount: 680, memo: 'お弁当' },
+        { id: 'tx_2', date: `${currentYear}-${currentMonth}-02`, type: 'expense', category: '嗜好品', title: 'セブン-イレブン', amount: 600, memo: 'タバコ' },
         { id: 'tx_3', date: `${currentYear}-${currentMonth}-05`, type: 'expense', category: '外食・カフェ', title: 'スターバックス', amount: 590, memo: 'ラテ' }
       ];
       persistData();
@@ -998,7 +1056,6 @@
       showToast('エラーメッセージをコピーしました');
     }
 
-    // 混雑時（High Demand / 503）にも耐えられる候補モデルリスト
     const GEMINI_MODELS = [
       'gemini-3.8-flash',
       'gemini-3.1-flash-lite',
@@ -1006,14 +1063,12 @@
       'gemini-3-flash-preview'
     ];
 
-    // 自動リトライ＆予備モデル自動切り替え付き通信関数
     async function callGeminiWithAutoFallback(payload, apiKey, onStatus) {
       let lastErrMsg = '';
 
       for (const model of GEMINI_MODELS) {
         if (onStatus) onStatus(`モデル ${model} で通信中...`);
 
-        // 最大2回試行（混雑時は1.5秒待って自動再試行）
         for (let attempt = 1; attempt <= 2; attempt++) {
           try {
             const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -1032,15 +1087,12 @@
             const errMsg = errData.error?.message || `HTTP ${res.status}`;
             lastErrMsg = errMsg;
 
-            // 高負荷・混雑エラー（High Demand / 503 / 429）の場合は待機して再試行
             const isHighDemand = errMsg.includes('high demand') || res.status === 503 || res.status === 429;
             if (isHighDemand && attempt === 1) {
               if (onStatus) onStatus(`混雑のため待機して再試行中 (${model})...`);
               await new Promise(r => setTimeout(r, 1500));
               continue;
             }
-
-            // それ以外の理由や2回目失敗なら次の予備モデルへ
             break;
           } catch (netErr) {
             lastErrMsg = netErr.message || '通信エラー';
@@ -1056,12 +1108,13 @@
       const cleanKey = geminiApiKey.trim();
       const statusText = document.getElementById('aiStatusText');
 
+      // AIに対してタバコやお酒を「嗜好品」に分類するルールを明示
       const prompt = `このレシート画像から必要な情報を抽出し、必ず以下のキーを持つJSONオブジェクトのみを出力してください。マークダウンの装飾や前後の解説テキストは一切出力しないでください。
 {
   "store": "店名または発行元（分からなければ品名）",
   "amount": 1280,
   "date": "${getTodayString()}",
-  "category": "食費 / 外食・カフェ / 日用品 / 交際費 / 交通費 / 娯楽・ホビー / 通信・光熱 / 衣服・美容 / その他 の中から一番近い1つ",
+  "category": "食費 / 外食・カフェ / 日用品 / 嗜好品 / 趣味・娯楽 / 交際費 / 交通費 / 通信・光熱 / 衣服・美容 / その他 の中から一番近い1つ（※タバコ・電子タバコ・お酒などの嗜好品は必ず「嗜好品」に分類してください）",
   "memo": "購入品目をカンマ区切りで要約"
 }`;
 
@@ -1404,13 +1457,53 @@
       showToast('スプレッドシートURLを保存しました');
     }
 
-    async function syncWithSpreadsheet() {
+    function openSyncModal() {
+      document.getElementById('syncModal').classList.remove('hidden');
+    }
+
+    // 📥 スプレッドシートから読み込む（PC編集内容をスマホに反映）
+    async function loadFromSpreadsheet() {
       if (!gasEndpoint) {
         showToast('設定画面でURLを入力してください');
         switchView('settings');
         return;
       }
-      showToast('同期処理を実行中...');
+      showToast('スプレッドシートからデータを受信中...');
+      try {
+        const res = await fetch(gasEndpoint, { method: 'GET' });
+        if (!res.ok) throw new Error('通信ステータス異常');
+        const data = await res.json();
+        
+        if (Array.isArray(data)) {
+          if (data.length === 0) {
+            showToast('スプレッドシートに明細データがありません');
+            return;
+          }
+          transactions = data;
+          persistData();
+          refreshDashboard();
+          if (!document.getElementById('view-analytics').classList.contains('hidden')) {
+            renderAnalyticsCharts();
+          }
+          closeModal('syncModal');
+          showToast(`スプレッドシートから${data.length}件の明細を反映しました！`);
+        } else {
+          showToast('受信データが正しい形式ではありません');
+        }
+      } catch (err) {
+        console.error(err);
+        showToast('スプレッドシートからの読み込みに失敗しました');
+      }
+    }
+
+    // 📤 スプレッドシートへ送信する（スマホのデータを上書きバックアップ）
+    async function uploadToSpreadsheet() {
+      if (!gasEndpoint) {
+        showToast('設定画面でURLを入力してください');
+        switchView('settings');
+        return;
+      }
+      showToast('スプレッドシートへ送信中...');
       try {
         await fetch(gasEndpoint, {
           method: 'POST',
@@ -1418,6 +1511,7 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'syncAll', transactions: transactions })
         });
+        closeModal('syncModal');
         showToast('スプレッドシートへ送信完了');
       } catch (e) {
         showToast('同期に失敗しました');
