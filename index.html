@@ -998,7 +998,45 @@
       showToast('エラーメッセージをコピーしました');
     }
 
+    // Google AIの利用可能モデルを自動取得する関数
+    async function getBestGeminiModel(apiKey) {
+      try {
+        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
+        if (listRes.ok) {
+          const data = await listRes.json();
+          const models = data.models || [];
+          
+          // generateContent をサポートし、flashが含まれるモデルを優先
+          const flashModels = models.filter(m => 
+            m.supportedGenerationMethods && 
+            m.supportedGenerationMethods.includes('generateContent') &&
+            m.name.includes('flash')
+          );
+          if (flashModels.length > 0) {
+            return flashModels[0].name.replace('models/', '');
+          }
+
+          // flashがなければgenerateContentをサポートする任意のgeminiモデル
+          const anyGemini = models.filter(m => 
+            m.supportedGenerationMethods && 
+            m.supportedGenerationMethods.includes('generateContent') &&
+            m.name.includes('gemini')
+          );
+          if (anyGemini.length > 0) {
+            return anyGemini[0].name.replace('models/', '');
+          }
+        }
+      } catch (e) {
+        console.warn('モデル自動一覧の取得に失敗:', e);
+      }
+      // 最新の安定版エイリアスへフォールバック
+      return 'gemini-flash-latest';
+    }
+
     async function parseReceiptWithGemini(base64Data, mimeType = 'image/jpeg') {
+      const cleanKey = geminiApiKey.trim();
+      const modelName = await getBestGeminiModel(cleanKey);
+
       const prompt = `このレシート画像から必要な情報を抽出し、必ず以下のキーを持つJSONオブジェクトのみを出力してください。マークダウンの装飾や前後の解説テキストは一切出力しないでください。
 {
   "store": "店名または発行元（分からなければ品名）",
@@ -1008,7 +1046,6 @@
   "memo": "購入品目をカンマ区切りで要約"
 }`;
 
-      // Google Generative Language REST API の厳密な仕様 (camelCase: inlineData / mimeType)
       const payload = {
         contents: [
           {
@@ -1025,8 +1062,7 @@
         ]
       };
 
-      const cleanKey = geminiApiKey.trim();
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${cleanKey}`;
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanKey}`;
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -1330,13 +1366,14 @@
       }
 
       resultEl.className = 'text-[11px] pt-1 font-medium text-blue-600 animate-pulse';
-      resultEl.textContent = '通信テスト中...';
+      resultEl.textContent = '利用可能な最新モデルを検出中...';
 
       try {
+        const modelName = await getBestGeminiModel(val);
         const testPayload = {
           contents: [{ parts: [{ text: 'Respond with OK' }] }]
         };
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${val}`;
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${val}`;
         const res = await fetch(endpoint, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -1349,7 +1386,7 @@
         }
 
         resultEl.className = 'text-[11px] pt-1 font-medium text-emerald-600';
-        resultEl.textContent = '✅ 接続成功！AI通信は正常に機能しています。';
+        resultEl.textContent = `✅ 接続成功！利用モデル: ${modelName}`;
         geminiApiKey = val;
         localStorage.setItem('pm_gemini_api_key', val);
       } catch (err) {
