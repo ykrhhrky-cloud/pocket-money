@@ -4,60 +4,18 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>お小遣い管理アプリ</title>
-  
-  <!-- iOS用アプリアイコン・PWA設定 -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="お小遣い管理アプリ">
-  <link id="dynamicAppleIcon" rel="apple-touch-icon" href="">
-  <link id="dynamicFavicon" rel="icon" type="image/svg+xml" href="">
-
-  <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <!-- Google Fonts: Inter & Noto Sans JP -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+JP:wght@400;500;600;700&display=swap" rel="stylesheet">
-  
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          fontFamily: {
-            sans: ['-apple-system', 'BlinkMacSystemFont', 'Inter', 'Noto Sans JP', 'sans-serif'],
-          },
-          colors: {
-            ios: {
-              blue: '#007AFF',
-              green: '#34C759',
-              red: '#FF3B30',
-              orange: '#FF9500',
-              purple: '#AF52DE',
-              teal: '#5AC8FA',
-              yellow: '#FFCC00',
-              card: '#FFFFFF',
-              bg: '#F2F2F7',
-            }
-          },
-          boxShadow: {
-            'ios': '0 4px 20px -2px rgba(0, 0, 0, 0.05), 0 2px 6px -1px rgba(0, 0, 0, 0.03)',
-            'ios-float': '0 10px 25px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
-          }
-        }
-      }
-    }
-  </script>
-
   <style>
-    * {
+    body {
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
       -webkit-tap-highlight-color: transparent;
       user-select: none;
+      background-color: #f8faff;
     }
     input, textarea, select {
-      user-select: text;
+      user-select: auto;
     }
     .no-scrollbar::-webkit-scrollbar {
       display: none;
@@ -66,716 +24,2146 @@
       -ms-overflow-style: none;
       scrollbar-width: none;
     }
-    .pb-safe {
-      padding-bottom: calc(env(safe-area-inset-bottom, 20px) + 70px);
+    .card-shadow {
+      box-shadow: 0 4px 20px -2px rgba(59, 130, 246, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
     }
-    .pt-safe {
-      padding-top: max(env(safe-area-inset-top, 0px), 16px);
+    .fab-shadow {
+      box-shadow: 0 8px 20px -4px rgba(37, 99, 235, 0.45);
+    }
+    @keyframes spin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .animate-spin-custom {
+      animation: spin 1s linear infinite;
+    }
+    @keyframes scaleUp {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .animate-scale-up {
+      animation: scaleUp 0.16s ease-out forwards;
     }
   </style>
 </head>
-<body class="bg-[#F2F2F7] text-slate-800 font-sans min-h-screen antialiased flex flex-col justify-between">
+<body class="text-slate-800 antialiased font-sans h-screen flex flex-col overflow-hidden">
 
-  <!-- メインコンテナ -->
-  <div class="w-full max-w-md mx-auto flex-1 flex flex-col min-h-screen bg-[#F2F2F7] relative">
+  <!-- ==================== メインコンテナ ==================== -->
+  <div class="flex-1 flex flex-col w-full max-w-md mx-auto bg-[#f8faff] h-full overflow-hidden relative shadow-2xl">
 
-    <!-- ヘッダー -->
-    <header class="sticky top-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/80 px-4 py-3 pt-safe">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-2">
-          <div class="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center text-white shadow-sm font-bold text-lg">
-            ¥
-          </div>
-          <div>
-            <h1 class="text-base font-bold tracking-tight text-slate-900 leading-none">お小遣い管理アプリ</h1>
-            <p class="text-[11px] text-slate-500 mt-0.5" id="headerSubtitle">当月</p>
-          </div>
+    <!-- ==================== ヘッダー ==================== -->
+    <header class="flex-shrink-0 px-4 pt-3 pb-2.5 bg-white/80 backdrop-blur-md border-b border-blue-50/80 flex items-center justify-between z-20">
+      <div class="flex items-center space-x-2.5">
+        <div class="w-9 h-9 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-black text-base shadow-md shadow-blue-500/25">
+          ¥
         </div>
-
-        <!-- スプレッドシート連携ステータス & 設定ボタン -->
-        <div class="flex items-center space-x-1.5">
-          <button id="btnQuickSync" onclick="openSyncModal()" class="px-2.5 py-1.5 rounded-full text-xs font-semibold bg-blue-50 active:bg-blue-100 text-blue-700 flex items-center space-x-1 border border-blue-200 transition">
-            <svg id="syncIcon" class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            <span id="syncText">同期メニュー</span>
-          </button>
-          <button onclick="switchView('settings')" class="p-2 rounded-full text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition active:scale-95">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </button>
+        <div>
+          <h1 class="text-base font-extrabold tracking-tight text-slate-800 leading-tight">お小遣い管理アプリ</h1>
+          <span id="headerPeriodSub" class="text-[11px] font-semibold text-blue-500 block -mt-0.5">当月</span>
         </div>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <!-- 同期ボタン -->
+        <button id="btnSync" onclick="triggerSmartSync()" class="flex items-center space-x-1 px-3 py-1.5 rounded-full bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-bold active:scale-95 transition border border-blue-200/60 shadow-xs">
+          <svg id="syncIcon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+          <span id="syncText">同期メニュー</span>
+        </button>
+
+        <!-- 設定ボタン -->
+        <button onclick="openModal('settingsModal')" class="p-1.5 text-slate-400 hover:text-slate-600 active:scale-90 transition">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </button>
       </div>
     </header>
 
-    <!-- メインコンテンツ表示エリア -->
-    <main class="flex-1 px-4 py-3 pb-safe space-y-4">
+    <!-- ==================== メインコンテンツ ==================== -->
+    <main class="flex-1 flex flex-col min-h-0 px-3.5 pt-2 pb-1 overflow-hidden">
 
       <!-- ==================== TAB 1: ホーム ==================== -->
-      <section id="view-home" class="space-y-4">
-        
-        <!-- 期間セレクター -->
-        <div class="flex items-center space-x-1.5 overflow-x-auto no-scrollbar py-1">
-          <button onclick="setPeriodFilter('this_month')" id="chip-this_month" class="period-chip active px-3.5 py-1.5 rounded-full text-xs font-semibold bg-blue-600 text-white shadow-sm transition">今月</button>
-          <button onclick="setPeriodFilter('last_month')" id="chip-last_month" class="period-chip px-3.5 py-1.5 rounded-full text-xs font-medium bg-white text-slate-600 border border-slate-200 transition">先月</button>
-          <button onclick="setPeriodFilter('last_3_months')" id="chip-last_3_months" class="period-chip px-3.5 py-1.5 rounded-full text-xs font-medium bg-white text-slate-600 border border-slate-200 transition">直近3ヶ月</button>
-          <button onclick="setPeriodFilter('this_year')" id="chip-this_year" class="period-chip px-3.5 py-1.5 rounded-full text-xs font-medium bg-white text-slate-600 border border-slate-200 transition">今年</button>
-          <button onclick="openCustomPeriodModal()" id="chip-custom" class="period-chip px-3.5 py-1.5 rounded-full text-xs font-medium bg-white text-slate-600 border border-slate-200 transition flex items-center space-x-1">
-            <span>期間指定</span>
-            <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-          </button>
-        </div>
+      <section id="view-home" class="flex-1 flex flex-col min-h-0 space-y-2.5 overflow-hidden">
 
-        <!-- 期間表示バッジ -->
-        <div class="flex items-center justify-between text-xs text-slate-500 px-1">
-          <span id="currentPeriodLabel" class="font-medium text-slate-700">対象期間: 当月</span>
-          <span id="transactionCountLabel">件数: 0件</span>
-        </div>
+        <!-- 対象期間バー（期間選択メニュー ＆ 直近6ヶ月追加 ＆ 当月に戻るボタン） -->
+        <div class="flex-shrink-0 flex items-center justify-between px-1 text-xs">
+          <div class="flex items-center space-x-2">
+            <div class="relative">
+              <button type="button" onclick="togglePeriodDropdown()" class="flex items-center space-x-1 text-slate-600 font-bold hover:text-blue-600 active:scale-95 transition">
+                <span>対象期間:</span>
+                <span id="targetPeriodDisplay" class="text-blue-600 underline underline-offset-2">当月</span>
+                <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+              </button>
 
-        <!-- サマリーカード（薄いブルー単色・フラット） -->
-        <div class="bg-[#EBF3FC] border border-blue-200/70 text-slate-800 rounded-3xl p-5 shadow-ios">
-          <div class="flex items-baseline justify-between mb-2">
-            <span class="text-xs font-semibold tracking-wide text-blue-900/80 uppercase">現在のお小遣い総残高</span>
-            <span class="text-[11px] bg-white border border-blue-200/70 px-2.5 py-0.5 rounded-full font-medium text-blue-700 shadow-xs">実質残金</span>
+              <!-- 期間プルダウンメニュー（直近6ヶ月を追加） -->
+              <div id="periodDropdownMenu" class="hidden absolute left-0 top-full mt-1.5 w-48 bg-white text-slate-800 rounded-2xl shadow-xl py-1.5 z-40 border border-slate-100 text-xs font-semibold">
+                <button type="button" onclick="selectPeriodMode('current_month')" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center justify-between">
+                  <span>今月 (当月)</span>
+                  <span class="text-[10px] text-blue-500 font-bold">標準</span>
+                </button>
+                <button type="button" onclick="selectPeriodMode('prev_month')" class="w-full text-left px-3.5 py-2 hover:bg-slate-50">先月</button>
+                <button type="button" onclick="selectPeriodMode('last_3_months')" class="w-full text-left px-3.5 py-2 hover:bg-slate-50">直近3ヶ月</button>
+                <button type="button" onclick="selectPeriodMode('last_6_months')" class="w-full text-left px-3.5 py-2 hover:bg-slate-50">直近6ヶ月</button>
+                <button type="button" onclick="selectPeriodMode('this_year')" class="w-full text-left px-3.5 py-2 hover:bg-slate-50">今年 (1年分)</button>
+                <div class="border-t border-slate-100 my-1"></div>
+                <button type="button" onclick="openCustomDateModal()" class="w-full text-left px-3.5 py-2 text-blue-600 hover:bg-blue-50">期間を直接指定...</button>
+              </div>
+            </div>
+
+            <!-- 当月に戻るボタン -->
+            <button id="btnBackToCurrentMonth" onclick="selectPeriodMode('current_month')" class="hidden px-2.5 py-0.5 rounded-full bg-blue-100/90 text-blue-700 hover:bg-blue-200 text-[10px] font-extrabold active:scale-95 transition flex items-center space-x-1 border border-blue-200 shadow-xs">
+              <svg class="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M3 10h10a5 5 0 015 5v2m0 0l-3-3m3 3l3-3"/></svg>
+              <span>当月に戻る</span>
+            </button>
           </div>
 
-          <div class="text-3xl font-extrabold tracking-tight font-mono text-slate-900 mb-5 flex items-baseline">
-            <span class="text-xl font-semibold text-blue-600 mr-1.5">¥</span>
-            <span id="totalBalanceVal">0</span>
-          </div>
-
-          <div class="grid grid-cols-3 gap-2 pt-3.5 border-t border-blue-200/60 text-center">
-            <div class="bg-white rounded-2xl p-2.5 shadow-sm border border-blue-100">
-              <span class="text-[11px] text-slate-500 font-medium block mb-0.5">期間収入</span>
-              <span class="text-sm font-bold text-emerald-600 font-mono" id="periodIncomeVal">+¥0</span>
-            </div>
-            <div class="bg-white rounded-2xl p-2.5 shadow-sm border border-blue-100">
-              <span class="text-[11px] text-slate-500 font-medium block mb-0.5">期間支出</span>
-              <span class="text-sm font-bold text-rose-500 font-mono" id="periodExpenseVal">-¥0</span>
-            </div>
-            <div class="bg-white rounded-2xl p-2.5 shadow-sm border border-blue-100">
-              <span class="text-[11px] text-slate-500 font-medium block mb-0.5">当期収支</span>
-              <span class="text-sm font-bold font-mono" id="periodNetVal">¥0</span>
-            </div>
+          <div class="flex items-center space-x-2 text-[11px] text-slate-400 font-semibold">
+            <button onclick="shiftMonth(-1)" class="p-0.5 hover:text-blue-600 active:scale-90 transition font-mono">◀</button>
+            <span id="txCountBadge">0件の取引</span>
+            <button onclick="shiftMonth(1)" class="p-0.5 hover:text-blue-600 active:scale-90 transition font-mono">▶</button>
           </div>
         </div>
 
-        <!-- クイックアクションバー -->
-        <div class="grid grid-cols-2 gap-3">
-          <button onclick="triggerReceiptCamera()" class="flex items-center justify-center space-x-2 py-3 px-4 rounded-2xl bg-white text-blue-600 font-semibold text-sm border border-blue-100 shadow-ios active:scale-95 transition">
-            <div class="w-7 h-7 rounded-full bg-blue-50 flex items-center justify-center">
-              <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        <!-- ==================== サマリカード（薄型化・左右配置＆前期比表示・実質残金削除） ==================== -->
+        <div id="swipeCardArea" class="flex-shrink-0 bg-gradient-to-b from-[#eef5ff] to-[#e4efff] rounded-3xl p-3.5 card-shadow border border-blue-200/70 relative select-none transition-transform duration-200 flex items-center justify-between">
+          
+          <!-- 左側：現在残高 ＆ 前期比（マイナスは赤字・黒三角） -->
+          <div class="flex-1 pr-2 min-w-0">
+            <span class="text-xs font-extrabold text-blue-900 tracking-tight block">現在残高</span>
+            
+            <div class="flex items-baseline space-x-1 my-0.5">
+              <span class="text-lg font-bold font-mono text-blue-600">¥</span>
+              <span id="netTotal" class="text-2xl font-black font-mono text-slate-900 tracking-tight">0</span>
             </div>
-            <span>レシートを撮る</span>
-          </button>
 
-          <button onclick="openManualModal('expense')" class="flex items-center justify-center space-x-2 py-3 px-4 rounded-2xl bg-white text-slate-700 font-semibold text-sm border border-slate-200 shadow-ios active:scale-95 transition">
-            <div class="w-7 h-7 rounded-full bg-slate-100 flex items-center justify-center">
-              <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            <!-- 前期比表示エリア -->
+            <div class="flex items-center space-x-1 mt-0.5">
+              <span id="diffVsPrevPeriod" class="text-[10px] font-bold text-slate-500 font-mono">（前期比 ±¥0）</span>
             </div>
-            <span>手入力で記帳</span>
+          </div>
+
+          <!-- 右側：四角くまとめた収支ボックス（左上: 期間中収入 / 右上: 期間中支出 / 下: 期間中収支） -->
+          <div class="w-44 flex-shrink-0 flex flex-col space-y-1.5">
+            <!-- 上段: 収入・支出の2並び -->
+            <div class="grid grid-cols-2 gap-1.5">
+              <div class="bg-white/95 rounded-xl p-1.5 text-center shadow-xs border border-blue-100/60">
+                <span class="text-[9px] text-slate-400 font-bold block leading-none mb-1">期間中収入</span>
+                <span id="incomeTotal" class="text-[11px] font-black font-mono text-emerald-600 truncate block leading-tight">+¥0</span>
+              </div>
+              <div class="bg-white/95 rounded-xl p-1.5 text-center shadow-xs border border-blue-100/60">
+                <span class="text-[9px] text-slate-400 font-bold block leading-none mb-1">期間中支出</span>
+                <span id="expenseTotal" class="text-[11px] font-black font-mono text-rose-500 truncate block leading-tight">-¥0</span>
+              </div>
+            </div>
+
+            <!-- 下段: 期間中収支 -->
+            <div class="bg-white/95 rounded-xl py-1 px-2 text-center shadow-xs border border-blue-100/60 flex items-center justify-between">
+              <span class="text-[9px] text-slate-400 font-bold">期間中収支</span>
+              <span id="periodDiffTotal" class="text-[11px] font-black font-mono text-emerald-600">+¥0</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ==================== クイックアクションボタン ==================== -->
+        <div class="flex-shrink-0 grid grid-cols-2 gap-2.5">
+          <label for="quickReceiptInput" class="flex items-center justify-center space-x-2 py-2.5 px-3 bg-white hover:bg-blue-50/50 text-blue-600 rounded-2xl card-shadow border border-blue-100 active:scale-95 transition cursor-pointer">
+            <input type="file" id="quickReceiptInput" accept="image/*" capture="environment" class="hidden" onchange="handleReceiptUpload(event)">
+            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+            <span class="text-xs font-bold text-slate-700">レシートを撮る</span>
+          </label>
+
+          <button onclick="openManualModal('expense')" class="flex items-center justify-center space-x-2 py-2.5 px-3 bg-white hover:bg-blue-50/50 text-slate-700 rounded-2xl card-shadow border border-blue-100 active:scale-95 transition">
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            <span class="text-xs font-bold text-slate-700">手入力で記帳</span>
           </button>
         </div>
 
-        <!-- 収支明細リスト -->
-        <div class="bg-white rounded-3xl p-4 shadow-ios space-y-3">
-          <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-            <h2 class="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
-              <span>収支の明細</span>
-              <span id="detailBadge" class="text-[11px] bg-slate-100 text-slate-600 font-normal px-2 py-0.5 rounded-full">最新順</span>
-            </h2>
-            <div class="flex items-center space-x-1 text-xs">
-              <select id="filterCategory" onchange="renderTransactionsList()" class="bg-slate-50 border border-slate-200 text-slate-600 rounded-lg px-2 py-1 text-xs outline-none">
-                <option value="all">全科目</option>
+        <!-- ==================== 収支の明細リスト（複数科目絞り込み対応） ==================== -->
+        <div class="flex-1 min-h-0 bg-white rounded-3xl p-3.5 card-shadow border border-slate-100 flex flex-col overflow-hidden">
+          
+          <!-- リストヘッダー -->
+          <div id="listHeaderNormal" class="flex items-center justify-between pb-2.5 border-b border-slate-100 flex-shrink-0">
+            <h2 class="text-xs font-extrabold text-slate-800">収支の明細</h2>
+            
+            <div class="flex items-center space-x-1.5">
+              <!-- ソートセレクタ -->
+              <select id="sortOrder" onchange="renderTransactionsList()" class="bg-slate-100 text-slate-700 rounded-xl px-2 py-1 text-[11px] font-bold outline-none border border-slate-200/50">
+                <option value="date_desc">最新順</option>
+                <option value="date_asc">古い順</option>
+                <option value="amount_desc">金額が高い順</option>
+                <option value="amount_asc">金額が安い順</option>
+              </select>
+
+              <!-- ★ 複数科目絞り込みトリガーボタン -->
+              <div class="relative">
+                <button type="button" onclick="toggleCategoryFilterMenu()" id="btnCategoryFilterTrigger" class="bg-slate-100 text-slate-700 rounded-xl px-2 py-1 text-[11px] font-bold flex items-center space-x-1 border border-slate-200/50 active:scale-95 transition">
+                  <span id="selectedCategoryLabel" class="max-w-[75px] truncate">全科目</span>
+                  <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
+                </button>
+
+                <!-- 複数科目選択ドロップダウン -->
+                <div id="categoryFilterDropdown" class="hidden absolute right-0 top-full mt-1.5 w-48 bg-white rounded-2xl shadow-xl p-2.5 z-40 border border-slate-100 text-xs">
+                  <div class="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100">
+                    <span class="font-extrabold text-slate-700 text-[11px]">科目を絞り込み</span>
+                    <button type="button" onclick="resetCategoryFilter()" class="text-[10px] text-blue-600 font-bold hover:underline">すべて選択</button>
+                  </div>
+                  <div id="categoryCheckboxContainer" class="space-y-1.5 max-h-48 overflow-y-auto no-scrollbar py-0.5">
+                    <!-- JSでチェックボックスを動的生成 -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- 整理ボタン -->
+              <button onclick="toggleSelectMode(true)" class="px-2.5 py-1 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 active:scale-95 transition">
+                整理
+              </button>
+            </div>
+          </div>
+
+          <!-- リストヘッダー（整理・削除モード） -->
+          <div id="listHeaderSelect" class="hidden flex items-center justify-between pb-2.5 border-b border-slate-100 flex-shrink-0">
+            <div class="flex items-center space-x-2">
+              <span id="selectedCountBadge" class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">0件選択</span>
+              <button onclick="selectAllItems()" class="text-xs text-slate-500 hover:text-slate-800 font-bold underline">全選択</button>
+            </div>
+            <div class="flex items-center space-x-1.5">
+              <button onclick="toggleSelectMode(false)" class="px-2.5 py-1 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition">完了</button>
+              <button onclick="confirmBulkDelete()" class="px-3 py-1 rounded-xl text-xs font-bold bg-rose-600 text-white hover:bg-rose-700 active:scale-95 transition">削除</button>
+            </div>
+          </div>
+
+          <!-- 明細カードリスト -->
+          <div id="transactionList" class="flex-1 overflow-y-auto no-scrollbar pt-2.5 space-y-2"></div>
+
+          <!-- 空表示 -->
+          <div id="emptyListState" class="hidden flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400">
+            <div class="w-12 h-12 rounded-full bg-slate-50 flex items-center justify-center text-xl mb-2">👛</div>
+            <p class="text-xs font-bold text-slate-500">この期間の明細はありません</p>
+            <p class="text-[10px] text-slate-400 mt-0.5">下のカメラまたは手入力で追加できます</p>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- ==================== TAB 2: 推移グラフ（年単位集計 ＆ 収支/収入/支出） ==================== -->
+      <section id="view-analytics" class="hidden flex-1 overflow-y-auto no-scrollbar space-y-3">
+        <!-- 円グラフ -->
+        <div class="bg-white rounded-3xl p-4 card-shadow border border-slate-100">
+          <div class="flex items-center justify-between mb-2">
+            <h2 class="text-xs font-bold text-slate-900">科目別 支出内訳</h2>
+            <span class="text-[10px] text-slate-400 font-semibold" id="pieChartPeriodLabel">当月</span>
+          </div>
+          <div class="relative w-full h-44 flex items-center justify-center">
+            <canvas id="pieChartCanvas"></canvas>
+            <div id="pieEmptyState" class="hidden absolute inset-0 flex items-center justify-center text-xs text-slate-400">
+              この期間の支出データはありません
+            </div>
+          </div>
+        </div>
+
+        <!-- 月別推移グラフ（年単位選択対応） -->
+        <div class="bg-white rounded-3xl p-4 card-shadow border border-slate-100 space-y-3">
+          
+          <!-- 上段: タイトル ＆ 期間切替（6ヶ月 / 12ヶ月 / 年選択プルダウン） -->
+          <div class="flex items-center justify-between">
+            <div>
+              <h2 class="text-xs font-bold text-slate-900">月別推移グラフ</h2>
+              <span class="text-[10px] text-slate-400" id="trendSubtitle">純収支（黒字は上、赤字は下）</span>
+            </div>
+            
+            <!-- 期間切替ボタングループ ＆ 年選択プルダウン -->
+            <div class="flex items-center space-x-1.5">
+              <div class="inline-flex p-0.5 bg-slate-100 rounded-xl text-[10px] font-bold">
+                <button type="button" onclick="setAnalyticsTrendPeriod('6m')" id="btnTrendPeriod6m" class="px-2 py-0.5 rounded-lg bg-white text-blue-600 shadow-xs transition">6ヶ月</button>
+                <button type="button" onclick="setAnalyticsTrendPeriod('12m')" id="btnTrendPeriod12m" class="px-2 py-0.5 rounded-lg text-slate-600 transition">12ヶ月</button>
+              </div>
+
+              <!-- ★ 年単位選択プルダウン（2026年、2025年...） -->
+              <select id="trendYearSelect" onchange="setAnalyticsTrendYear(this.value)" class="bg-slate-100 text-slate-700 rounded-xl px-2 py-0.5 text-[10px] font-bold outline-none border border-slate-200/50">
+                <!-- JSで動的生成 -->
               </select>
             </div>
           </div>
 
-          <div id="transactionList" class="space-y-2.5 max-h-[380px] overflow-y-auto no-scrollbar pr-0.5"></div>
-
-          <div id="emptyListState" class="hidden py-10 text-center text-slate-400 text-xs">
-            <svg class="w-10 h-10 mx-auto text-slate-300 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-            この期間の明細はまだありません
+          <!-- 中段: 表示モード切替 -->
+          <div class="flex items-center space-x-1.5 p-1 bg-slate-50 rounded-2xl border border-slate-100 text-[11px] font-bold">
+            <button type="button" onclick="setAnalyticsGraphMode('diff')" id="btnGraphModeDiff" class="flex-1 py-1 rounded-xl bg-white text-blue-600 shadow-xs transition text-center">
+              純収支 (差額)
+            </button>
+            <button type="button" onclick="setAnalyticsGraphMode('both')" id="btnGraphModeBoth" class="flex-1 py-1 rounded-xl text-slate-500 hover:text-slate-800 transition text-center">
+              収入と支出
+            </button>
+            <button type="button" onclick="setAnalyticsGraphMode('expense')" id="btnGraphModeExpense" class="flex-1 py-1 rounded-xl text-slate-500 hover:text-slate-800 transition text-center">
+              支出のみ
+            </button>
+          </div>
+          
+          <!-- 下段: グラフCanvas -->
+          <div class="relative w-full h-52">
+            <canvas id="trendChartCanvas"></canvas>
+            <div id="trendEmptyState" class="hidden absolute inset-0 flex items-center justify-center text-xs text-slate-400">
+              データがまだありません
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- ==================== TAB 2: 分析・推移 ==================== -->
-      <section id="view-analytics" class="hidden space-y-4">
-        <div class="bg-white rounded-3xl p-4 shadow-ios">
+      <!-- ==================== TAB 3: 定期収支 ==================== -->
+      <section id="view-recurring" class="hidden flex-1 overflow-y-auto no-scrollbar space-y-3">
+        <div class="bg-white rounded-3xl p-4 card-shadow border border-slate-100">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="text-sm font-bold text-slate-900">科目別 支出シェア</h2>
-            <span class="text-xs text-slate-400" id="analyticsPeriodLabel">当月集計</span>
-          </div>
-          <div class="relative h-56 flex items-center justify-center">
-            <canvas id="categoryPieChart"></canvas>
-          </div>
-          <div id="categoryBreakdownList" class="mt-4 space-y-2 pt-3 border-t border-slate-100 text-xs"></div>
-        </div>
-
-        <div class="bg-white rounded-3xl p-4 shadow-ios">
-          <div class="flex items-center justify-between mb-3">
-            <h2 class="text-sm font-bold text-slate-900">月別 支出推移</h2>
-            <span class="text-xs text-slate-400">直近半年</span>
-          </div>
-          <div class="relative h-52">
-            <canvas id="monthlyTrendChart"></canvas>
-          </div>
-        </div>
-      </section>
-
-      <!-- ==================== TAB 3: 定期収支管理 ==================== -->
-      <section id="view-recurring" class="hidden space-y-4">
-        <div class="bg-white rounded-3xl p-5 shadow-ios">
-          <div class="flex items-center justify-between mb-2">
             <div>
-              <h2 class="text-base font-bold text-slate-900">定期収支ルール</h2>
-              <p class="text-xs text-slate-500">毎月決まった入金やお小遣い・サブスク支払いを自動管理</p>
+              <h2 class="text-xs font-bold text-slate-900">定期収支の自動化</h2>
+              <p class="text-[10px] text-slate-400">毎月のお小遣いやサブスクを自動登録</p>
             </div>
-            <button onclick="openRecurringModal()" class="px-3 py-1.5 rounded-full bg-blue-600 text-white text-xs font-semibold shadow-sm active:scale-95 transition">
-              ＋ 追加
+            <button onclick="openRecurringModal()" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold active:scale-95 transition shadow-sm">
+              + 定期設定
             </button>
           </div>
-
-          <div id="recurringList" class="mt-4 space-y-3"></div>
-
-          <div id="emptyRecurringState" class="hidden py-8 text-center text-slate-400 text-xs">
-            登録された定期収支はありません。<br>「毎月のお小遣い」や「音楽サブスク」を登録しましょう。
-          </div>
-        </div>
-      </section>
-
-      <!-- ==================== TAB 4: 設定 ==================== -->
-      <section id="view-settings" class="hidden space-y-4">
-        
-        <!-- Gemini APIキー設定 -->
-        <div class="bg-white rounded-3xl p-5 shadow-ios space-y-3">
-          <div class="flex items-center space-x-2.5">
-            <div class="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            </div>
-            <div>
-              <h2 class="text-base font-bold text-slate-900">Gemini レシートAI設定</h2>
-              <p class="text-xs text-slate-500">無料のAPIキーで自動文字起こし・科目判定</p>
-            </div>
-          </div>
-
-          <div class="space-y-2 text-xs">
-            <div>
-              <label class="block font-medium text-slate-700 mb-1">Gemini API Key</label>
-              <input type="password" id="geminiApiKeyInput" placeholder="AIzaSy..." class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono">
-            </div>
-            <div class="flex space-x-2 pt-1">
-              <button onclick="saveGeminiApiKey()" class="flex-1 py-2.5 bg-blue-600 active:bg-blue-700 text-white rounded-xl font-semibold shadow-sm transition">
-                APIキーを保存
-              </button>
-              <button onclick="testGeminiConnection()" class="px-4 py-2.5 bg-slate-100 active:bg-slate-200 text-slate-700 rounded-xl font-medium transition">
-                接続テスト
-              </button>
-            </div>
-            <p id="geminiTestResult" class="text-[11px] pt-1 hidden font-medium"></p>
-            <p class="text-[11px] text-slate-400">※ Google AI Studio（完全無料）で取得したキーを入力してください。端末内に安全に保存されます。</p>
-          </div>
-        </div>
-
-        <!-- Googleスプレッドシート連携 -->
-        <div class="bg-white rounded-3xl p-5 shadow-ios space-y-4">
-          <div class="flex items-center space-x-2.5">
-            <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
-              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14z"/><path d="M7 7h10v2H7zm0 4h10v2H7zm0 4h7v2H7z"/></svg>
-            </div>
-            <div>
-              <h2 class="text-base font-bold text-slate-900">Googleスプレッドシート連携</h2>
-              <p class="text-xs text-slate-500">双方向でデータを完全にやり取り</p>
-            </div>
-          </div>
-
-          <div class="space-y-3 text-xs">
-            <div>
-              <label class="block font-medium text-slate-700 mb-1">Google Apps Script (GAS) WebアプリURL</label>
-              <input type="url" id="gasEndpointUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono">
-            </div>
-
-            <div class="flex space-x-2 pt-1">
-              <button onclick="saveGasSettings()" class="flex-1 py-2.5 bg-blue-600 active:bg-blue-700 text-white rounded-xl font-semibold shadow-sm transition">
-                URLを保存する
-              </button>
-              <button onclick="testGasConnection()" class="px-4 py-2.5 bg-slate-100 active:bg-slate-200 text-slate-700 rounded-xl font-medium transition">
-                接続テスト
-              </button>
-            </div>
-
-            <div class="pt-2 border-t border-slate-100 flex space-x-2">
-              <button onclick="loadFromSpreadsheet()" class="flex-1 py-2.5 bg-emerald-600 active:bg-emerald-700 text-white rounded-xl font-semibold shadow-sm transition flex items-center justify-center space-x-1">
-                <span>📥 スプシから読み込み</span>
-              </button>
-              <button onclick="uploadToSpreadsheet()" class="flex-1 py-2.5 bg-slate-700 active:bg-slate-800 text-white rounded-xl font-semibold shadow-sm transition flex items-center justify-center space-x-1">
-                <span>📤 スプシへ送信</span>
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <div class="bg-white rounded-3xl p-5 shadow-ios space-y-3 text-xs">
-          <h2 class="text-sm font-bold text-slate-900">データメンテナンス</h2>
-          <div class="grid grid-cols-2 gap-2">
-            <button onclick="loadSampleDemoData()" class="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 rounded-xl font-medium transition active:scale-95">
-              デモ用データを投入
-            </button>
-            <button onclick="clearAllDataConfirm()" class="py-2.5 px-3 bg-rose-50 hover:bg-rose-100 text-rose-600 rounded-xl font-medium transition active:scale-95">
-              全データをリセット
-            </button>
+          <div id="recurringList" class="space-y-2"></div>
+          <div id="recurringEmpty" class="hidden py-8 text-center text-slate-400 text-xs">
+            定期登録されている収支はありません
           </div>
         </div>
       </section>
 
     </main>
 
-    <!-- ボトムナビゲーション -->
-    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-white/85 backdrop-blur-lg border-t border-slate-200/80 max-w-md mx-auto">
-      <div class="grid grid-cols-5 h-16 items-center px-1">
-        <button onclick="switchView('home')" id="tab-home" class="tab-btn active flex flex-col items-center justify-center text-blue-600 py-1 transition">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
-          <span class="text-[10px] font-semibold mt-0.5">ホーム</span>
-        </button>
+    <!-- ==================== 下部ナビゲーションバー ==================== -->
+    <nav class="flex-shrink-0 bg-white/95 backdrop-blur-md border-t border-slate-200/70 px-3 py-1.5 flex items-center justify-between z-30 relative">
+      
+      <!-- 1. ホーム -->
+      <button onclick="switchView('home')" id="tab-home" class="tab-btn flex-1 flex flex-col items-center space-y-0.5 text-blue-600 active transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+        <span class="text-[10px] font-bold">ホーム</span>
+      </button>
 
-        <button onclick="switchView('analytics')" id="tab-analytics" class="tab-btn flex flex-col items-center justify-center text-slate-400 py-1 transition">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-          <span class="text-[10px] font-medium mt-0.5">推移グラフ</span>
-        </button>
+      <!-- 2. 推移グラフ -->
+      <button onclick="switchView('analytics')" id="tab-analytics" class="tab-btn flex-1 flex flex-col items-center space-y-0.5 text-slate-400 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        <span class="text-[10px] font-semibold">推移グラフ</span>
+      </button>
 
-        <div class="flex items-center justify-center">
-          <button onclick="triggerReceiptCamera()" class="w-12 h-12 rounded-full bg-blue-600 text-white shadow-lg shadow-blue-500/40 flex items-center justify-center active:scale-90 transition -translate-y-2">
-            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-          </button>
-        </div>
-
-        <button onclick="switchView('recurring')" id="tab-recurring" class="tab-btn flex flex-col items-center justify-center text-slate-400 py-1 transition">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          <span class="text-[10px] font-medium mt-0.5">定期収支</span>
-        </button>
-
-        <button onclick="openManualModal('expense')" id="tab-add" class="tab-btn flex flex-col items-center justify-center text-slate-400 py-1 transition">
-          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
-          <span class="text-[10px] font-medium mt-0.5">手入力</span>
-        </button>
+      <!-- 3. 【中央】主役カメラボタン -->
+      <div class="flex-1 flex justify-center -mt-6">
+        <label for="bottomReceiptInput" class="w-13 h-13 p-3.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white fab-shadow border-4 border-[#f8faff] flex items-center justify-center cursor-pointer active:scale-95 transition">
+          <input type="file" id="bottomReceiptInput" accept="image/*" capture="environment" class="hidden" onchange="handleReceiptUpload(event)">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        </label>
       </div>
+
+      <!-- 4. 定期収支 -->
+      <button onclick="switchView('recurring')" id="tab-recurring" class="tab-btn flex-1 flex flex-col items-center space-y-0.5 text-slate-400 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        <span class="text-[10px] font-semibold">定期収支</span>
+      </button>
+
+      <!-- 5. 手入力 -->
+      <button onclick="openManualModal('expense')" class="flex-1 flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-600 transition">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        <span class="text-[10px] font-semibold">手入力</span>
+      </button>
+
     </nav>
 
-    <input type="file" id="cameraInput" accept="image/*" capture="environment" class="hidden" onchange="handleReceiptSelected(event)">
   </div>
 
-  <!-- MODAL: スプレッドシート同期メニュー -->
-  <div id="syncModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-        <h3 class="text-base font-bold text-slate-900 flex items-center space-x-2">
-          <span>📊</span>
-          <span>スプレッドシート同期</span>
-        </h3>
-        <button onclick="closeModal('syncModal')" class="p-1 text-slate-400 hover:text-slate-600">✕</button>
+  <!-- ==================== モーダル群 ==================== -->
+
+  <!-- 手入力＆編集モーダル -->
+  <div id="manualModal" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-3.5 animate-scale-up">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+        <h3 class="text-sm font-extrabold text-slate-800" id="manualModalTitle">手入力で記帳</h3>
+        <button onclick="closeModal('manualModal')" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
       </div>
 
-      <div class="space-y-3">
-        <!-- 読み込みボタン -->
-        <button onclick="loadFromSpreadsheet()" class="w-full p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-left hover:bg-emerald-100/70 transition active:scale-98">
+      <!-- 収支切替スイッチ -->
+      <div id="manualTypeToggleArea" class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-2xl text-xs font-bold">
+        <button type="button" onclick="setManualType('expense')" id="btnManualTypeExpense" class="py-2 rounded-xl bg-white text-rose-600 shadow-xs transition">支出</button>
+        <button type="button" onclick="setManualType('income')" id="btnManualTypeIncome" class="py-2 rounded-xl text-slate-600 transition">入金</button>
+      </div>
+
+      <div class="space-y-2.5">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">日付</label>
+          <input type="date" id="manualDate" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2 text-xs font-semibold outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">金額 (円)</label>
+          <input type="number" id="manualAmount" placeholder="0" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2 text-base font-black font-mono outline-none focus:border-blue-500">
+        </div>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">科目</label>
+          <select id="manualCategory" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2 text-xs font-semibold outline-none focus:border-blue-500"></select>
+        </div>
+        
+        <!-- 内容 / 店舗名 -->
+        <div id="manualTitleGroup">
           <div class="flex items-center justify-between mb-1">
-            <span class="text-sm font-bold text-emerald-800 flex items-center space-x-1.5">
-              <span>📥</span>
-              <span>スプレッドシートから読み込む</span>
-            </span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-emerald-200/80 text-emerald-800 font-bold">PC → スマホ</span>
+            <label class="block text-[11px] font-bold text-slate-600">内容 / 店舗名</label>
+            <span class="text-[10px] text-slate-400">過去の履歴から補完</span>
           </div>
-          <p class="text-xs text-emerald-700/90 leading-relaxed">
-            パソコンのスプレッドシートで手入力・編集した明細をスマホアプリに取り込みます。
-          </p>
+          <input type="text" id="manualTitle" list="titleSuggestions" placeholder="例: セブンイレブン、昼食" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2 text-xs font-semibold outline-none focus:border-blue-500">
+          <datalist id="titleSuggestions"></datalist>
+          <div id="quickTitleChips" class="flex flex-wrap gap-1 mt-1.5 min-h-[22px]"></div>
+        </div>
+
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">メモ (任意)</label>
+          <input type="text" id="manualMemo" placeholder="特記事項があれば入力" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2 text-xs font-semibold outline-none focus:border-blue-500">
+        </div>
+      </div>
+
+      <div class="flex space-x-2 pt-1">
+        <button onclick="closeModal('manualModal')" class="flex-1 py-2.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 transition">キャンセル</button>
+        <button onclick="saveManualTransaction()" id="btnSaveManual" class="flex-1 py-2.5 rounded-2xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700 active:scale-95 transition shadow-sm">登録する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 明細詳細モーダル -->
+  <div id="detailModal" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4 animate-scale-up">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+        <span id="detailTypeBadge" class="px-2.5 py-0.5 rounded-full text-[11px] font-bold">支出</span>
+        <button onclick="closeModal('detailModal')" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+
+      <div class="text-center py-1">
+        <span class="text-xs text-slate-400 font-semibold">金額</span>
+        <div id="detailAmount" class="text-3xl font-black font-mono text-slate-900 mt-0.5">¥0</div>
+      </div>
+
+      <div class="bg-slate-50 rounded-2xl p-3.5 space-y-2 text-xs">
+        <div class="flex justify-between items-center py-1 border-b border-slate-200/60">
+          <span class="text-slate-400 font-semibold">日付</span>
+          <span id="detailDate" class="font-bold text-slate-700">2026-10-24</span>
+        </div>
+        <div class="flex justify-between items-center py-1 border-b border-slate-200/60">
+          <span class="text-slate-400 font-semibold">科目</span>
+          <span id="detailCategory" class="font-bold text-slate-700">食費</span>
+        </div>
+        <div class="flex justify-between items-start py-1 border-b border-slate-200/60">
+          <span class="text-slate-400 font-semibold">内容 / 店舗名</span>
+          <span id="detailTitle" class="font-bold text-slate-700 text-right max-w-[180px] break-words">未分類</span>
+        </div>
+        <div class="flex justify-between items-start py-1">
+          <span class="text-slate-400 font-semibold">メモ</span>
+          <span id="detailMemo" class="text-slate-600 text-right max-w-[180px] break-words">なし</span>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 pt-1">
+        <button id="btnEditDetail" class="py-2.5 rounded-2xl bg-blue-50 text-blue-600 font-bold text-xs hover:bg-blue-100 active:scale-95 transition border border-blue-200/60 flex items-center justify-center space-x-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+          <span>編集する</span>
         </button>
 
-        <!-- 書き出しボタン -->
-        <button onclick="uploadToSpreadsheet()" class="w-full p-4 rounded-2xl bg-blue-50 border border-blue-200 text-left hover:bg-blue-100/70 transition active:scale-98">
-          <div class="flex items-center justify-between mb-1">
-            <span class="text-sm font-bold text-blue-800 flex items-center space-x-1.5">
-              <span>📤</span>
-              <span>スプレッドシートへ送信する</span>
-            </span>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-200/80 text-blue-800 font-bold">スマホ → PC</span>
-          </div>
-          <p class="text-xs text-blue-700/90 leading-relaxed">
-            スマホ内の最新データ（レシート・手入力）をスプレッドシートに保存（上書き更新）します。
-          </p>
+        <button id="btnDeleteDetail" class="py-2.5 rounded-2xl bg-rose-50 text-rose-600 font-bold text-xs hover:bg-rose-100 active:scale-95 transition border border-rose-200/60 flex items-center justify-center space-x-1">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+          <span>削除する</span>
         </button>
       </div>
+    </div>
+  </div>
 
-      <div class="pt-1">
-        <button onclick="closeModal('syncModal')" class="w-full py-2.5 bg-slate-100 text-slate-600 rounded-xl text-xs font-semibold">閉じる</button>
+  <!-- 重複検知＆確認モーダル -->
+  <div id="duplicateReceiptModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl space-y-3.5 animate-scale-up text-center">
+      <div class="w-12 h-12 rounded-full bg-amber-100 text-amber-600 mx-auto flex items-center justify-center text-xl">⚠️</div>
+      <div>
+        <h4 class="text-sm font-extrabold text-slate-800">重複の可能性があります</h4>
+        <p class="text-xs text-amber-600 font-bold mt-0.5">同じレシートが既に登録されています</p>
+      </div>
+
+      <div class="bg-amber-50/70 border border-amber-200/60 rounded-2xl p-3 text-left space-y-1.5 text-[11px]">
+        <div class="flex justify-between">
+          <span class="text-slate-500">店舗名:</span>
+          <span id="dupStoreName" class="font-bold text-slate-800">店舗名</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">日付:</span>
+          <span id="dupDate" class="font-bold text-slate-800">2026-10-24</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-slate-500">金額:</span>
+          <span id="dupAmount" class="font-black font-mono text-slate-900">¥0</span>
+        </div>
+      </div>
+
+      <p class="text-[11px] text-slate-500">二重登録を防ぐため、登録をキャンセルすることを推奨します。</p>
+
+      <div class="space-y-2 pt-1">
+        <button onclick="cancelDuplicateReceipt()" class="w-full py-2.5 rounded-2xl bg-blue-600 text-xs font-bold text-white shadow-sm hover:bg-blue-700 active:scale-95 transition">
+          登録をやめる (重複防止)
+        </button>
+        <button onclick="forceSaveDuplicateReceipt()" class="w-full py-2 rounded-2xl text-[11px] font-bold text-slate-400 hover:text-slate-600 transition">
+          別会計なので、それでも登録する
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL: レシートAI解析 -->
-  <div id="receiptModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[92vh] overflow-y-auto no-scrollbar">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-        <h3 class="text-base font-bold text-slate-900">レシート自動読み取り</h3>
-        <button onclick="closeModal('receiptModal')" class="p-1 text-slate-400 hover:text-slate-600">✕</button>
+  <!-- 削除警告モーダル -->
+  <div id="deleteConfirmModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl text-center space-y-3 animate-scale-up">
+      <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 mx-auto flex items-center justify-center">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
       </div>
-
-      <!-- 写真プレビューと状態表示 -->
-      <div class="relative w-full h-48 rounded-2xl bg-slate-100 overflow-hidden flex items-center justify-center border border-slate-200">
-        <img id="receiptPreviewImg" src="" alt="プレビュー" class="w-full h-full object-contain bg-slate-900 hidden">
-        <div id="receiptLoadingSpinner" class="flex flex-col items-center justify-center p-4 text-center space-y-2">
-          <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-          <p class="text-xs font-semibold text-slate-700 animate-pulse" id="aiStatusText">Gemini AIが解析中...</p>
-        </div>
+      <div>
+        <h4 class="text-sm font-bold text-slate-800">明細を削除しますか？</h4>
+        <p class="text-xs text-rose-600 font-bold mt-0.5">⚠️ 削除すると元に戻せません</p>
+        <p id="deleteConfirmMessage" class="text-[11px] text-slate-500 mt-1">選択された明細を完全に削除します。</p>
       </div>
-
-      <!-- エラー詳細表示ボックス（エラー時のみ表示・コピー可能） -->
-      <div id="receiptErrorBox" class="hidden p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs space-y-1.5">
-        <div class="flex items-center justify-between font-bold">
-          <span>⚠️ AI解析エラーが発生しました</span>
-          <button type="button" onclick="copyReceiptError()" class="px-2 py-0.5 rounded bg-white text-rose-600 border border-rose-200 shadow-xs text-[10px]">エラーをコピー</button>
-        </div>
-        <p id="receiptErrorDetail" class="font-mono text-[11px] break-all select-text"></p>
-        <p class="text-[10px] text-rose-500">※ 下記の入力欄に手動で金額・店名を入力して登録することも可能です。</p>
+      <div class="flex space-x-2 pt-1">
+        <button onclick="closeModal('deleteConfirmModal')" class="flex-1 py-2.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">キャンセル</button>
+        <button id="btnExecuteDelete" class="flex-1 py-2.5 rounded-2xl bg-rose-600 text-xs font-bold text-white hover:bg-rose-700 active:scale-95 transition">削除する</button>
       </div>
-
-      <form id="receiptConfirmForm" onsubmit="saveReceiptTransaction(event)" class="space-y-3 text-xs">
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">店名 / 品名</label>
-          <input type="text" id="aiStoreName" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">合計金額 (¥)</label>
-            <input type="number" id="aiAmount" required min="1" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-base font-bold font-mono">
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">日付</label>
-            <input type="date" id="aiDate" required class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs">
-          </div>
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">科目</label>
-          <select id="aiCategory" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs"></select>
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">品目サマリー / メモ</label>
-          <textarea id="aiMemo" rows="2" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"></textarea>
-        </div>
-        <div class="pt-2 flex space-x-2">
-          <button type="button" onclick="closeModal('receiptModal')" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium">キャンセル</button>
-          <button type="submit" id="btnSaveReceipt" disabled class="flex-1 py-3 bg-blue-600 disabled:bg-slate-300 text-white rounded-xl font-bold">支出を登録</button>
-        </div>
-      </form>
     </div>
   </div>
 
-  <!-- MODAL: 手入力 -->
-  <div id="manualModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[92vh] overflow-y-auto no-scrollbar">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-        <div class="flex bg-slate-100 p-0.5 rounded-xl text-xs font-bold w-44">
-          <button type="button" onclick="setManualType('expense')" id="btnTypeExpense" class="flex-1 py-1.5 rounded-lg bg-white shadow-sm text-rose-600">支出</button>
-          <button type="button" onclick="setManualType('income')" id="btnTypeIncome" class="flex-1 py-1.5 rounded-lg text-slate-500">入金</button>
+  <!-- 期間直接指定モーダル -->
+  <div id="customDateModal" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl space-y-3 animate-scale-up">
+      <h3 class="text-sm font-bold text-slate-800">期間を直接指定</h3>
+      <div class="space-y-2.5">
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">開始日</label>
+          <input type="date" id="customStartDate" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2 text-xs font-semibold outline-none">
         </div>
-        <button onclick="closeModal('manualModal')" class="p-1 text-slate-400">✕</button>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">終了日</label>
+          <input type="date" id="customEndDate" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2 text-xs font-semibold outline-none">
+        </div>
       </div>
-      <form id="manualForm" onsubmit="saveManualTransaction(event)" class="space-y-3.5 text-xs">
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">金額 (¥)</label>
-          <input type="number" id="manualAmount" required min="1" placeholder="0" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-2xl font-extrabold text-slate-900 font-mono">
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">科目</label>
-          <div id="manualCategoryChips" class="flex flex-wrap gap-1.5 py-1"></div>
-          <input type="hidden" id="manualSelectedCategory" required>
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">内容 / 店名</label>
-          <input type="text" id="manualTitle" required placeholder="例: セブンイレブン、お小遣い等" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">日付</label>
-            <input type="date" id="manualDate" required class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs">
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">メモ (任意)</label>
-            <input type="text" id="manualMemo" placeholder="備考" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs">
-          </div>
-        </div>
-        <div class="pt-2 flex space-x-2">
-          <button type="button" onclick="closeModal('manualModal')" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium">閉じる</button>
-          <button type="submit" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-md">保存する</button>
-        </div>
-      </form>
+      <div class="flex space-x-2 pt-1">
+        <button onclick="closeModal('customDateModal')" class="flex-1 py-2.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600">キャンセル</button>
+        <button onclick="applyCustomDateRange()" class="flex-1 py-2.5 rounded-2xl bg-blue-600 text-xs font-bold text-white">適用する</button>
+      </div>
     </div>
   </div>
 
-  <!-- MODAL: 定期収支作成 -->
-  <div id="recurringModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
-    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl p-5 space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar">
-      <div class="flex items-center justify-between pb-2 border-b border-slate-100">
-        <div class="flex bg-slate-100 p-0.5 rounded-xl text-xs font-bold w-48">
-          <button type="button" onclick="setRecurringType('income')" id="btnRecIncome" class="flex-1 py-1.5 rounded-lg bg-white shadow-sm text-emerald-600">定期入金</button>
-          <button type="button" onclick="setRecurringType('expense')" id="btnRecExpense" class="flex-1 py-1.5 rounded-lg text-slate-500">定期出金</button>
-        </div>
-        <button onclick="closeModal('recurringModal')" class="p-1 text-slate-400">✕</button>
+  <!-- 定期登録モーダル -->
+  <div id="recurringModal" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-3 animate-scale-up">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+        <h3 class="text-sm font-bold text-slate-800">定期収支の新規登録</h3>
+        <button onclick="closeModal('recurringModal')" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
       </div>
-      <form id="recurringForm" onsubmit="saveRecurringItem(event)" class="space-y-3 text-xs">
+      <div class="grid grid-cols-2 gap-2 p-1 bg-slate-100 rounded-2xl text-xs font-bold">
+        <button type="button" onclick="setRecurringType('income')" id="btnRecTypeIncome" class="py-1.5 rounded-xl bg-white text-emerald-600 shadow-xs">入金</button>
+        <button type="button" onclick="setRecurringType('expense')" id="btnRecTypeExpense" class="py-1.5 rounded-xl text-slate-600">支出</button>
+      </div>
+      <div class="space-y-2.5">
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">名目</label>
-          <input type="text" id="recName" required placeholder="例: 毎月のお小遣い、サブスク" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs">
-        </div>
-        <div class="grid grid-cols-2 gap-3">
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">金額 (¥)</label>
-            <input type="number" id="recAmount" required min="1" placeholder="1000" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-sm font-bold font-mono">
-          </div>
-          <div>
-            <label class="block font-semibold text-slate-700 mb-1">毎月の処理日</label>
-            <select id="recDay" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs"></select>
-          </div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">毎月の登録日</label>
+          <select id="recDay" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2 text-xs font-semibold outline-none"></select>
         </div>
         <div>
-          <label class="block font-semibold text-slate-700 mb-1">科目</label>
-          <select id="recCategory" class="w-full px-3 py-2.5 rounded-xl border border-slate-200 text-xs"></select>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">項目名</label>
+          <input type="text" id="recTitle" placeholder="例: 今月のお小遣い" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2 text-xs font-semibold outline-none">
         </div>
-        <div class="pt-2 flex space-x-2">
-          <button type="button" onclick="closeModal('recurringModal')" class="flex-1 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium">戻る</button>
-          <button type="submit" class="flex-1 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-md">登録する</button>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">金額 (円)</label>
+          <input type="number" id="recAmount" placeholder="30000" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2 text-base font-black font-mono outline-none">
         </div>
-      </form>
+        <div>
+          <label class="block text-[11px] font-bold text-slate-600 mb-1">科目</label>
+          <select id="recCategory" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2 text-xs font-semibold outline-none"></select>
+        </div>
+      </div>
+      <div class="flex space-x-2 pt-1">
+        <button onclick="closeModal('recurringModal')" class="flex-1 py-2.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600">キャンセル</button>
+        <button onclick="saveRecurringRule()" class="flex-1 py-2.5 rounded-2xl bg-blue-600 text-xs font-bold text-white">保存する</button>
+      </div>
     </div>
   </div>
 
-  <!-- MODAL: 期間指定 -->
-  <div id="customPeriodModal" class="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
-    <div class="bg-white w-full max-w-sm rounded-3xl p-5 space-y-4 shadow-ios-float">
-      <h3 class="text-sm font-bold text-slate-900 pb-1 border-b border-slate-100">集計する期間を指定</h3>
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">開始日</label>
-          <input type="date" id="customStartDate" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs">
-        </div>
-        <div>
-          <label class="block font-semibold text-slate-700 mb-1">終了日</label>
-          <input type="date" id="customEndDate" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs">
-        </div>
+  <!-- 設定モーダル -->
+  <div id="settingsModal" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto no-scrollbar animate-scale-up">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+        <h3 class="text-sm font-bold text-slate-800">アプリ設定</h3>
+        <button onclick="closeModal('settingsModal')" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
       </div>
-      <div class="flex space-x-2 pt-2">
-        <button onclick="closeModal('customPeriodModal')" class="flex-1 py-2.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-medium">キャンセル</button>
-        <button onclick="applyCustomPeriod()" class="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-semibold">決定</button>
+
+      <div class="space-y-2">
+        <label class="text-xs font-bold text-slate-800 block">Gemini APIキー</label>
+        <input type="password" id="geminiApiKey" placeholder="AIzaSy..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2 text-xs font-mono outline-none">
+        <div class="flex space-x-2 pt-1">
+          <button onclick="saveApiKey()" class="flex-1 py-2 bg-slate-800 text-white rounded-2xl text-xs font-bold hover:bg-slate-900 transition">保存</button>
+          <button onclick="testGeminiConnection()" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-2xl text-xs font-bold hover:bg-blue-100 transition">テスト</button>
+        </div>
+        <div id="geminiTestStatus" class="hidden text-[11px] p-2.5 rounded-2xl"></div>
       </div>
+
+      <div class="border-t border-slate-100 pt-3 space-y-2">
+        <label class="text-xs font-bold text-slate-800 block">Google Apps Script URL</label>
+        <input type="url" id="gasUrl" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2 text-xs font-mono outline-none">
+        <button onclick="saveGasUrl()" class="w-full py-2 bg-slate-800 text-white rounded-2xl text-xs font-bold hover:bg-slate-900 transition">保存</button>
+      </div>
+
+      <div class="border-t border-slate-100 pt-3">
+        <button onclick="confirmResetAllData()" class="w-full py-2 bg-rose-50 text-rose-600 border border-rose-200 rounded-2xl text-xs font-bold hover:bg-rose-100 transition">
+          端末内の全データを初期化
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ★ レシート解析オーバーレイ（通信中断＆手入力切り替えボタン新設） -->
+  <div id="receiptLoadingOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-white text-center">
+    <div class="w-13 h-13 rounded-3xl bg-white/10 flex items-center justify-center mb-3">
+      <svg class="w-6 h-6 text-white animate-spin-custom" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+    </div>
+    <h3 class="text-sm font-bold tracking-wide">レシートをAI解析中...</h3>
+    <p class="text-xs text-slate-300 mt-1">店名・日付・金額・科目を読み取っています</p>
+
+    <!-- ★ 通信待機をスキップして手入力に切り替えるボタン -->
+    <div class="mt-6 w-full max-w-xs space-y-2">
+      <button type="button" onclick="abortReceiptAndOpenManual()" class="w-full py-2.5 px-4 rounded-2xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold backdrop-blur-md border border-white/20 active:scale-95 transition flex items-center justify-center space-x-1.5 shadow-sm">
+        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+        <span>読み取りを中止して手入力する</span>
+      </button>
+      <p class="text-[10px] text-slate-300">※通信が遅い場合はこちらを押すと重複せず手入力できます</p>
     </div>
   </div>
 
   <!-- トースト通知 -->
-  <div id="toast" class="fixed top-5 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none transition-all duration-300 opacity-0 -translate-y-4">
-    <div class="bg-slate-900/90 backdrop-blur-md text-white text-xs font-medium px-4 py-2.5 rounded-full shadow-lg flex items-center space-x-2">
-      <span id="toastIcon">✓</span>
-      <span id="toastMessage">完了しました</span>
-    </div>
+  <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300">
+    メッセージ
   </div>
 
-  <!-- JAVASCRIPT LOGIC -->
+  <!-- ==================== JavaScript ロジック ==================== -->
   <script>
-    // 支出科目（嗜好品を追加、娯楽・ホビーを趣味・娯楽へ変更）
-    const EXPENSE_CATEGORIES = [
-      { name: '食費', icon: '🍱', color: '#FF9500' },
-      { name: '外食・カフェ', icon: '☕', color: '#FF2D55' },
-      { name: '日用品', icon: '🧴', color: '#5856D6' },
-      { name: '嗜好品', icon: '🚬', color: '#8D6E63' }, // タバコ・お酒など
-      { name: '趣味・娯楽', icon: '🎮', color: '#5AC8FA' },
-      { name: '交際費', icon: '🍻', color: '#AF52DE' },
-      { name: '交通費', icon: '🚃', color: '#007AFF' },
-      { name: '通信・光熱', icon: '📱', color: '#34C759' },
-      { name: '衣服・美容', icon: '👕', color: '#E55934' },
-      { name: 'その他', icon: '📦', color: '#8E8E93' },
-    ];
+    // ★ 科目の刷新：「外食」追加、「自己投資」→「習い事・ジム」に変更
+    const expenseCategories = ['食費', '外食', '日用品', '嗜好品', '趣味・娯楽', '交通費', '交際費', '習い事・ジム', 'その他'];
+    const incomeCategories = ['お小遣い', '臨時収入', 'その他'];
 
-    const INCOME_CATEGORIES = [
-      { name: 'お小遣い', icon: '👛', color: '#34C759' },
-      { name: '給与', icon: '💼', color: '#007AFF' },
-      { name: '臨時収入', icon: '🎁', color: '#FF9500' },
-      { name: '副業', icon: '💻', color: '#AF52DE' },
-      { name: 'その他入金', icon: '💰', color: '#5AC8FA' }
-    ];
+    // アイコン絵文字マッピング
+    const categoryIcons = {
+      'お小遣い': '👛',
+      '臨時収入': '🪙',
+      '食費': '🍙',
+      '外食': '🍽️',
+      '日用品': '🧴',
+      '嗜好品': '🚬',
+      '趣味・娯楽': '🎮',
+      '交通費': '🚃',
+      '交際費': '🍻',
+      '習い事・ジム': '🏋️',
+      'その他': '🏷️'
+    };
 
     let transactions = [];
     let recurringRules = [];
-    let currentFilter = 'this_month';
+    let deletedTxIds = [];
+
+    let activeYear = new Date().getFullYear();
+    let activeMonth = new Date().getMonth() + 1;
+    let currentFilterMode = 'current_month';
     let customDateRange = { start: '', end: '' };
+    
+    // ★ 複数科目絞り込み用ステート（Set）
+    let selectedCategoriesFilter = new Set(); // 空なら全科目
+    
+    // 推移グラフ用ステート（年単位集計対応）
+    let currentTrendPeriod = '6m';      // '6m', '12m', 'year'
+    let currentTrendSelectedYear = new Date().getFullYear();
+    let currentTrendGraphMode = 'diff';  // 'diff'(純収支), 'both'(収入&支出), 'expense'(支出のみ)
+
     let currentManualType = 'expense';
+    let editingTxId = null;
     let currentRecurringType = 'income';
     let pieChartInstance = null;
     let trendChartInstance = null;
     let gasEndpoint = '';
     let geminiApiKey = '';
-    let lastReceiptError = '';
 
-    window.onload = function() {
-      setupAppIcons();
-      loadStoredSettings();
+    let isSelectionMode = false;
+    let selectedTxIds = new Set();
+    let pendingDuplicateTx = null;
+
+    // ★ レシート通信中断用コントローラー
+    let receiptAbortController = null;
+
+    window.addEventListener('DOMContentLoaded', () => {
       loadStoredData();
-
-      const todayStr = getTodayString();
-      document.getElementById('manualDate').value = todayStr;
-      document.getElementById('aiDate').value = todayStr;
-      document.getElementById('customStartDate').value = getMonthFirstDay(new Date());
-      document.getElementById('customEndDate').value = todayStr;
-
-      populateRecurringDays();
-      populateCategoryOptions();
-      checkPendingRecurringPayments();
+      populateDropdowns();
+      setupCategoryFilterDropdown();
+      setupTrendYearDropdown();
+      setupSwipeGesture();
+      checkAndApplyRecurring();
       refreshDashboard();
-      initAnalyticsCharts();
-    };
 
-    function setupAppIcons() {
-      const canvas = document.createElement('canvas');
-      canvas.width = 180;
-      canvas.height = 180;
-      const ctx = canvas.getContext('2d');
+      document.addEventListener('click', (e) => {
+        const dd = document.getElementById('periodDropdownMenu');
+        const btn = document.getElementById('targetPeriodDisplay');
+        if (dd && !dd.contains(e.target) && !btn?.contains(e.target)) {
+          dd.classList.add('hidden');
+        }
 
-      ctx.fillStyle = '#007AFF';
-      ctx.fillRect(0, 0, 180, 180);
-
-      ctx.fillStyle = '#FFFFFF';
-      ctx.font = 'bold 96px -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText('¥', 90, 95);
-
-      const dataUrl = canvas.toDataURL('image/png');
-      document.getElementById('dynamicAppleIcon').href = dataUrl;
-      document.getElementById('dynamicFavicon').href = dataUrl;
-    }
-
-    function loadStoredSettings() {
-      geminiApiKey = localStorage.getItem('pm_gemini_api_key') || '';
-      gasEndpoint = localStorage.getItem('pm_gas_endpoint') || '';
-
-      if (document.getElementById('geminiApiKeyInput')) {
-        document.getElementById('geminiApiKeyInput').value = geminiApiKey;
-      }
-      if (document.getElementById('gasEndpointUrl')) {
-        document.getElementById('gasEndpointUrl').value = gasEndpoint;
-      }
-    }
-
-    function loadStoredData() {
-      const savedTx = localStorage.getItem('pm_transactions');
-      const savedRec = localStorage.getItem('pm_recurring');
-
-      if (savedTx) {
-        try { transactions = JSON.parse(savedTx); } catch (e) { transactions = []; }
-      } else {
-        seedInitialDemoData();
-      }
-
-      if (savedRec) {
-        try { recurringRules = JSON.parse(savedRec); } catch (e) { recurringRules = []; }
-      }
-    }
-
-    function persistData() {
-      localStorage.setItem('pm_transactions', JSON.stringify(transactions));
-      localStorage.setItem('pm_recurring', JSON.stringify(recurringRules));
-    }
-
-    function getTodayString() {
-      const d = new Date();
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-    }
-
-    function getMonthFirstDay(d) {
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-01`;
-    }
-
-    function populateRecurringDays() {
-      const select = document.getElementById('recDay');
-      select.innerHTML = '';
-      for (let i = 1; i <= 31; i++) {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = `毎月 ${i} 日`;
-        if (i === 25) opt.selected = true;
-        select.appendChild(opt);
-      }
-      const optEnd = document.createElement('option');
-      optEnd.value = '99';
-      optEnd.textContent = '毎月 月末';
-      select.appendChild(optEnd);
-    }
-
-    function populateCategoryOptions() {
-      const aiSelect = document.getElementById('aiCategory');
-      aiSelect.innerHTML = '';
-      EXPENSE_CATEGORIES.forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.name;
-        opt.textContent = `${c.icon} ${c.name}`;
-        aiSelect.appendChild(opt);
-      });
-
-      const filterSelect = document.getElementById('filterCategory');
-      filterSelect.innerHTML = '<option value="all">全科目</option>';
-      [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES].forEach(c => {
-        const opt = document.createElement('option');
-        opt.value = c.name;
-        opt.textContent = `${c.icon} ${c.name}`;
-        filterSelect.appendChild(opt);
-      });
-    }
-
-    function seedInitialDemoData() {
-      const currentYear = new Date().getFullYear();
-      const currentMonth = String(new Date().getMonth() + 1).padStart(2, '0');
-
-      recurringRules = [
-        { id: 'rec_1', type: 'income', name: '毎月のお小遣い', amount: 30000, day: 25, category: 'お小遣い', lastAppliedMonth: `${currentYear}-${currentMonth}` },
-        { id: 'rec_2', type: 'expense', name: '音楽サブスク', amount: 1080, day: 10, category: '趣味・娯楽', lastAppliedMonth: `${currentYear}-${currentMonth}` }
-      ];
-
-      transactions = [
-        { id: 'tx_1', date: `${currentYear}-${currentMonth}-01`, type: 'income', category: 'お小遣い', title: '今月のお小遣い', amount: 30000, memo: '定期入金' },
-        { id: 'tx_2', date: `${currentYear}-${currentMonth}-02`, type: 'expense', category: '嗜好品', title: 'セブン-イレブン', amount: 600, memo: 'タバコ' },
-        { id: 'tx_3', date: `${currentYear}-${currentMonth}-05`, type: 'expense', category: '外食・カフェ', title: 'スターバックス', amount: 590, memo: 'ラテ' }
-      ];
-      persistData();
-    }
-
-    function checkPendingRecurringPayments() {
-      const now = new Date();
-      const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      const currentDay = now.getDate();
-      let updated = false;
-
-      recurringRules.forEach(rule => {
-        const isDue = (rule.day === '99') ? true : currentDay >= Number(rule.day);
-        if (rule.lastAppliedMonth !== currentYearMonth && isDue) {
-          const isIncome = rule.type === 'income';
-          const newTx = {
-            id: 'tx_rec_' + Date.now() + Math.random().toString(36).substring(2, 5),
-            date: getTodayString(),
-            type: rule.type || 'income',
-            category: rule.category,
-            title: rule.name,
-            amount: Number(rule.amount),
-            memo: isIncome ? '定期入金による自動反映' : '定期出金による自動反映'
-          };
-          transactions.unshift(newTx);
-          rule.lastAppliedMonth = currentYearMonth;
-          updated = true;
+        const catDd = document.getElementById('categoryFilterDropdown');
+        const catBtn = document.getElementById('btnCategoryFilterTrigger');
+        if (catDd && !catDd.contains(e.target) && !catBtn?.contains(e.target)) {
+          catDd.classList.add('hidden');
         }
       });
-      if (updated) persistData();
+    });
+
+    function loadStoredData() {
+      try {
+        const txData = localStorage.getItem('pocket_tx_v2');
+        if (txData) transactions = JSON.parse(txData);
+
+        const recData = localStorage.getItem('pocket_recurring_v2');
+        if (recData) recurringRules = JSON.parse(recData);
+
+        const delData = localStorage.getItem('pocket_deleted_tx_ids');
+        if (delData) deletedTxIds = JSON.parse(delData);
+
+        geminiApiKey = localStorage.getItem('pocket_gemini_key') || '';
+        gasEndpoint = localStorage.getItem('pocket_gas_url') || '';
+
+        if (document.getElementById('geminiApiKey')) document.getElementById('geminiApiKey').value = geminiApiKey;
+        if (document.getElementById('gasUrl')) document.getElementById('gasUrl').value = gasEndpoint;
+      } catch (e) {
+        console.error('Storage load failed:', e);
+      }
+    }
+
+    function saveStoredData() {
+      try {
+        localStorage.setItem('pocket_tx_v2', JSON.stringify(transactions));
+        localStorage.setItem('pocket_recurring_v2', JSON.stringify(recurringRules));
+        localStorage.setItem('pocket_deleted_tx_ids', JSON.stringify(deletedTxIds));
+      } catch (e) {
+        console.error('Storage save failed:', e);
+      }
+    }
+
+    function populateDropdowns() {
+      const recDay = document.getElementById('recDay');
+      if (recDay) {
+        recDay.innerHTML = '';
+        for (let i = 1; i <= 28; i++) {
+          const opt = document.createElement('option');
+          opt.value = i;
+          opt.textContent = `毎月 ${i} 日`;
+          recDay.appendChild(opt);
+        }
+        const lastOpt = document.createElement('option');
+        lastOpt.value = 'last';
+        lastOpt.textContent = '毎月 月末';
+        recDay.appendChild(lastOpt);
+      }
+    }
+
+    // ==================== 複数科目絞り込み機能 ====================
+    function setupCategoryFilterDropdown() {
+      const container = document.getElementById('categoryCheckboxContainer');
+      if (!container) return;
+
+      container.innerHTML = '';
+      const allCats = [...expenseCategories, ...incomeCategories.filter(c => !expenseCategories.includes(c))];
+
+      allCats.forEach(cat => {
+        const row = document.createElement('label');
+        row.className = 'flex items-center space-x-2 p-1.5 hover:bg-slate-50 rounded-xl cursor-pointer select-none text-xs';
+        
+        const isChecked = selectedCategoriesFilter.size === 0 || selectedCategoriesFilter.has(cat);
+        const icon = categoryIcons[cat] || '🏷️';
+
+        row.innerHTML = `
+          <input type="checkbox" value="${cat}" ${isChecked ? 'checked' : ''} onchange="onCategoryFilterCheckboxChange(this)" class="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 border-slate-300">
+          <span class="text-sm leading-none">${icon}</span>
+          <span class="font-bold text-slate-700">${cat}</span>
+        `;
+        container.appendChild(row);
+      });
+
+      updateCategoryFilterButtonLabel();
+    }
+
+    function toggleCategoryFilterMenu() {
+      const dd = document.getElementById('categoryFilterDropdown');
+      if (dd) dd.classList.toggle('hidden');
+    }
+
+    function onCategoryFilterCheckboxChange(checkbox) {
+      const cat = checkbox.value;
+      const allCats = [...expenseCategories, ...incomeCategories.filter(c => !expenseCategories.includes(c))];
+
+      if (selectedCategoriesFilter.size === 0) {
+        // 現在「全科目」状態から個別チェックを外した場合
+        allCats.forEach(c => selectedCategoriesFilter.add(c));
+      }
+
+      if (checkbox.checked) {
+        selectedCategoriesFilter.add(cat);
+      } else {
+        selectedCategoriesFilter.delete(cat);
+      }
+
+      // 全部チェック、または全解除されたらリセット（全科目）
+      if (selectedCategoriesFilter.size === allCats.length || selectedCategoriesFilter.size === 0) {
+        selectedCategoriesFilter.clear();
+      }
+
+      updateCategoryFilterButtonLabel();
+      renderTransactionsList();
+    }
+
+    function resetCategoryFilter() {
+      selectedCategoriesFilter.clear();
+      const checkboxes = document.querySelectorAll('#categoryCheckboxContainer input[type="checkbox"]');
+      checkboxes.forEach(cb => cb.checked = true);
+      updateCategoryFilterButtonLabel();
+      renderTransactionsList();
+    }
+
+    function updateCategoryFilterButtonLabel() {
+      const labelEl = document.getElementById('selectedCategoryLabel');
+      if (!labelEl) return;
+
+      if (selectedCategoriesFilter.size === 0) {
+        labelEl.textContent = '全科目';
+      } else if (selectedCategoriesFilter.size === 1) {
+        labelEl.textContent = Array.from(selectedCategoriesFilter)[0];
+      } else {
+        labelEl.textContent = `${selectedCategoriesFilter.size}科目選択中`;
+      }
+    }
+
+    // ==================== 年単位選択プルダウン（推移グラフ） ====================
+    function setupTrendYearDropdown() {
+      const sel = document.getElementById('trendYearSelect');
+      if (!sel) return;
+
+      sel.innerHTML = '';
+      const currentYear = new Date().getFullYear();
+      
+      // 過去3年〜当年
+      for (let y = currentYear; y >= currentYear - 3; y--) {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = `${y}年`;
+        if (y === currentTrendSelectedYear) opt.selected = true;
+        sel.appendChild(opt);
+      }
+    }
+
+    function setAnalyticsTrendYear(year) {
+      currentTrendSelectedYear = Number(year);
+      currentTrendPeriod = 'year';
+
+      // ボタンの見た目調整
+      const btn6m = document.getElementById('btnTrendPeriod6m');
+      const btn12m = document.getElementById('btnTrendPeriod12m');
+      if (btn6m) btn6m.className = 'px-2 py-0.5 rounded-lg text-slate-600 transition';
+      if (btn12m) btn12m.className = 'px-2 py-0.5 rounded-lg text-slate-600 transition';
+
+      renderTrendChart();
+    }
+
+    function setAnalyticsTrendPeriod(period) {
+      currentTrendPeriod = period;
+      
+      const btn6m = document.getElementById('btnTrendPeriod6m');
+      const btn12m = document.getElementById('btnTrendPeriod12m');
+
+      if (btn6m) btn6m.className = 'px-2 py-0.5 rounded-lg text-slate-600 transition';
+      if (btn12m) btn12m.className = 'px-2 py-0.5 rounded-lg text-slate-600 transition';
+
+      if (period === '6m' && btn6m) btn6m.className = 'px-2 py-0.5 rounded-lg bg-white text-blue-600 shadow-xs transition';
+      if (period === '12m' && btn12m) btn12m.className = 'px-2 py-0.5 rounded-lg bg-white text-blue-600 shadow-xs transition';
+
+      renderTrendChart();
+    }
+
+    function setupSwipeGesture() {
+      const card = document.getElementById('swipeCardArea');
+      if (!card) return;
+
+      let startX = 0;
+      let startY = 0;
+      let diffX = 0;
+
+      card.addEventListener('touchstart', (e) => {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        diffX = 0;
+        card.style.transition = 'none';
+      }, { passive: true });
+
+      card.addEventListener('touchmove', (e) => {
+        diffX = e.touches[0].clientX - startX;
+        const diffY = e.touches[0].clientY - startY;
+        if (Math.abs(diffX) > Math.abs(diffY)) {
+          card.style.transform = `translateX(${diffX * 0.35}px)`;
+        }
+      }, { passive: true });
+
+      card.addEventListener('touchend', () => {
+        card.style.transition = 'transform 0.2s ease-out';
+        card.style.transform = 'translateX(0px)';
+        if (diffX > 50) {
+          shiftMonth(-1);
+        } else if (diffX < -50) {
+          shiftMonth(1);
+        }
+      });
+    }
+
+    function togglePeriodDropdown() {
+      const menu = document.getElementById('periodDropdownMenu');
+      if (menu) menu.classList.toggle('hidden');
+    }
+
+    function selectPeriodMode(mode) {
+      currentFilterMode = mode;
+      const menu = document.getElementById('periodDropdownMenu');
+      if (menu) menu.classList.add('hidden');
+
+      const now = new Date();
+      if (mode === 'current_month') {
+        activeYear = now.getFullYear();
+        activeMonth = now.getMonth() + 1;
+      } else if (mode === 'prev_month') {
+        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        activeYear = prev.getFullYear();
+        activeMonth = prev.getMonth() + 1;
+      }
+
+      refreshDashboard();
+    }
+
+    function shiftMonth(delta) {
+      currentFilterMode = 'month';
+      let d = new Date(activeYear, activeMonth - 1 + delta, 1);
+      activeYear = d.getFullYear();
+      activeMonth = d.getMonth() + 1;
+      refreshDashboard();
+    }
+
+    function openCustomDateModal() {
+      const menu = document.getElementById('periodDropdownMenu');
+      if (menu) menu.classList.add('hidden');
+      document.getElementById('customStartDate').value = getTodayString();
+      document.getElementById('customEndDate').value = getTodayString();
+      openModal('customDateModal');
+    }
+
+    function applyCustomDateRange() {
+      const start = document.getElementById('customStartDate').value;
+      const end = document.getElementById('customEndDate').value;
+      if (!start || !end) {
+        showToast('開始日と終了日を選択してください', true);
+        return;
+      }
+      if (start > end) {
+        showToast('終了日は開始日より後にしてください', true);
+        return;
+      }
+      customDateRange = { start, end };
+      currentFilterMode = 'custom';
+      closeModal('customDateModal');
+      refreshDashboard();
+    }
+
+    function updatePeriodLabel() {
+      const targetLabel = document.getElementById('targetPeriodDisplay');
+      const headerSub = document.getElementById('headerPeriodSub');
+      const btnBack = document.getElementById('btnBackToCurrentMonth');
+      if (!targetLabel) return;
+
+      const now = new Date();
+      const isCurrentMonth = (currentFilterMode === 'current_month') || 
+        (currentFilterMode === 'month' && activeYear === now.getFullYear() && activeMonth === (now.getMonth() + 1));
+
+      if (btnBack) {
+        if (isCurrentMonth) {
+          btnBack.classList.add('hidden');
+        } else {
+          btnBack.classList.remove('hidden');
+        }
+      }
+
+      let text = '当月';
+      if (currentFilterMode === 'current_month') {
+        text = '当月';
+      } else if (currentFilterMode === 'prev_month' || currentFilterMode === 'month') {
+        text = `${activeYear}年${activeMonth}月`;
+      } else if (currentFilterMode === 'last_3_months') {
+        text = '直近3ヶ月';
+      } else if (currentFilterMode === 'last_6_months') {
+        text = '直近6ヶ月';
+      } else if (currentFilterMode === 'this_year') {
+        text = `${new Date().getFullYear()}年 (1年)`;
+      } else if (currentFilterMode === 'custom') {
+        text = `${customDateRange.start.slice(5)}〜${customDateRange.end.slice(5)}`;
+      }
+
+      targetLabel.textContent = text;
+      if (headerSub) headerSub.textContent = text;
+    }
+
+    function getFilteredTransactions() {
+      return transactions.filter(t => {
+        if (!t.date) return false;
+        if (currentFilterMode === 'current_month' || currentFilterMode === 'prev_month' || currentFilterMode === 'month') {
+          const prefix = `${activeYear}-${String(activeMonth).padStart(2, '0')}`;
+          return t.date.startsWith(prefix);
+        } else if (currentFilterMode === 'last_3_months') {
+          const now = new Date();
+          const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+          const tDate = new Date(t.date);
+          return tDate >= threeMonthsAgo && tDate <= now;
+        } else if (currentFilterMode === 'last_6_months') {
+          const now = new Date();
+          const sixMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+          const tDate = new Date(t.date);
+          return tDate >= sixMonthsAgo && tDate <= now;
+        } else if (currentFilterMode === 'this_year') {
+          return t.date.startsWith(`${new Date().getFullYear()}-`);
+        } else if (currentFilterMode === 'custom') {
+          return t.date >= customDateRange.start && t.date <= customDateRange.end;
+        }
+        return true;
+      });
+    }
+
+    // ★ 前期（前月など対応期間）の収支を計算して差分を算出
+    function calculateDiffVsPrevPeriod(currentPeriodDiff) {
+      let prevPeriodIncome = 0;
+      let prevPeriodExpense = 0;
+      let hasPrevData = false;
+
+      if (currentFilterMode === 'current_month' || currentFilterMode === 'prev_month' || currentFilterMode === 'month') {
+        // 前月を特定
+        const prevDate = new Date(activeYear, activeMonth - 2, 1);
+        const prevPrefix = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+        
+        transactions.forEach(t => {
+          if (t.date && t.date.startsWith(prevPrefix)) {
+            hasPrevData = true;
+            if (t.type === 'income') prevPeriodIncome += Number(t.amount) || 0;
+            else prevPeriodExpense += Number(t.amount) || 0;
+          }
+        });
+      }
+
+      const prevPeriodDiff = prevPeriodIncome - prevPeriodExpense;
+      const diffEl = document.getElementById('diffVsPrevPeriod');
+      if (!diffEl) return;
+
+      if (!hasPrevData) {
+        diffEl.textContent = '（前期比 ±¥0）';
+        diffEl.className = 'text-[10px] font-bold text-slate-400 font-mono';
+        return;
+      }
+
+      const diff = currentPeriodDiff - prevPeriodDiff;
+      if (diff > 0) {
+        diffEl.textContent = `（前期比 +¥${diff.toLocaleString()}）`;
+        diffEl.className = 'text-[10px] font-black text-emerald-600 font-mono';
+      } else if (diff < 0) {
+        // ★ マイナスのときは赤字 ＆ 黒三角をつける
+        diffEl.textContent = `（前期比 ▼¥${Math.abs(diff).toLocaleString()}）`;
+        diffEl.className = 'text-[10px] font-black text-rose-500 font-mono';
+      } else {
+        diffEl.textContent = '（前期比 ±¥0）';
+        diffEl.className = 'text-[10px] font-bold text-slate-400 font-mono';
+      }
+    }
+
+    function refreshDashboard() {
+      updatePeriodLabel();
+      const filtered = getFilteredTransactions();
+
+      // 1. 全期間の累計現在残高
+      let totalIncome = 0;
+      let totalExpense = 0;
+      transactions.forEach(t => {
+        if (t.type === 'income') totalIncome += Number(t.amount) || 0;
+        else totalExpense += Number(t.amount) || 0;
+      });
+      const netTotal = totalIncome - totalExpense;
+
+      // 2. 選択期間中の収入・支出・収支
+      let periodIncome = 0;
+      let periodExpense = 0;
+      filtered.forEach(t => {
+        if (t.type === 'income') periodIncome += Number(t.amount) || 0;
+        else periodExpense += Number(t.amount) || 0;
+      });
+      const periodDiff = periodIncome - periodExpense;
+
+      // DOM反映
+      document.getElementById('incomeTotal').textContent = `+¥${periodIncome.toLocaleString()}`;
+      document.getElementById('expenseTotal').textContent = `-¥${periodExpense.toLocaleString()}`;
+      
+      const periodDiffEl = document.getElementById('periodDiffTotal');
+      if (periodDiff >= 0) {
+        periodDiffEl.textContent = `+¥${periodDiff.toLocaleString()}`;
+        periodDiffEl.className = 'text-[11px] font-black font-mono text-emerald-600';
+      } else {
+        periodDiffEl.textContent = `-¥${Math.abs(periodDiff).toLocaleString()}`;
+        periodDiffEl.className = 'text-[11px] font-black font-mono text-rose-500';
+      }
+
+      const netEl = document.getElementById('netTotal');
+      netEl.textContent = netTotal.toLocaleString();
+      if (netTotal < 0) {
+        netEl.classList.add('text-rose-600');
+        netEl.classList.remove('text-slate-900');
+      } else {
+        netEl.classList.remove('text-rose-600');
+        netEl.classList.add('text-slate-900');
+      }
+
+      // 前期比の計算
+      calculateDiffVsPrevPeriod(periodDiff);
+
+      document.getElementById('txCountBadge').textContent = `${filtered.length}件の取引`;
+
+      renderTransactionsList(filtered);
+      renderAnalyticsCharts();
+    }
+
+    function renderTransactionsList(listData = null) {
+      let filtered = listData || getFilteredTransactions();
+      const listEl = document.getElementById('transactionList');
+      const emptyEl = document.getElementById('emptyListState');
+      const sortOrderVal = document.getElementById('sortOrder') ? document.getElementById('sortOrder').value : 'date_desc';
+
+      // ★ 複数科目絞り込みフィルター適用
+      if (selectedCategoriesFilter.size > 0) {
+        filtered = filtered.filter(t => selectedCategoriesFilter.has(t.category));
+      }
+
+      filtered.sort((a, b) => {
+        if (sortOrderVal === 'date_desc') return new Date(b.date) - new Date(a.date);
+        if (sortOrderVal === 'date_asc') return new Date(a.date) - new Date(b.date);
+        if (sortOrderVal === 'amount_desc') return (Number(b.amount) || 0) - (Number(a.amount) || 0);
+        if (sortOrderVal === 'amount_asc') return (Number(a.amount) || 0) - (Number(b.amount) || 0);
+        return 0;
+      });
+
+      listEl.innerHTML = '';
+
+      if (filtered.length === 0) {
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+      emptyEl.classList.add('hidden');
+
+      filtered.forEach(t => {
+        const isSelected = selectedTxIds.has(t.id);
+        const card = document.createElement('div');
+        card.className = `p-3 rounded-2xl border transition flex items-center justify-between cursor-pointer active:scale-[0.99] select-none ${
+          isSelected 
+            ? 'bg-blue-50/90 border-blue-300' 
+            : 'bg-slate-50/80 hover:bg-slate-100/90 border-slate-100/80 shadow-xs'
+        }`;
+
+        card.onclick = () => {
+          if (isSelectionMode) {
+            toggleItemSelection(t.id);
+          } else {
+            openTransactionDetailModal(t);
+          }
+        };
+
+        const checkboxHtml = isSelectionMode ? `
+          <div class="mr-2.5 flex-shrink-0">
+            <div class="w-4 h-4 rounded-full border flex items-center justify-center ${
+              isSelected ? 'bg-blue-600 border-blue-600 text-white' : 'border-slate-300 bg-white'
+            }">
+              ${isSelected ? '<svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>' : ''}
+            </div>
+          </div>
+        ` : '';
+
+        const iconChar = categoryIcons[t.category] || (t.type === 'income' ? '👛' : '🧾');
+        const iconBg = t.type === 'income' ? 'bg-emerald-50' : 'bg-rose-50/70';
+
+        const amountPrefix = t.type === 'income' ? '+¥' : '-¥';
+        const amountColor = t.type === 'income' ? 'text-emerald-600' : 'text-slate-800';
+
+        const memoSub = t.memo ? `<span class="text-[10px] text-slate-400 truncate block max-w-[150px]">${escapeHtml(t.memo)}</span>` : '';
+
+        card.innerHTML = `
+          <div class="flex items-center min-w-0 pr-2 space-x-2.5">
+            ${checkboxHtml}
+            <div class="w-10 h-10 rounded-2xl ${iconBg} flex items-center justify-center text-lg flex-shrink-0 shadow-xs">
+              ${iconChar}
+            </div>
+            <div class="min-w-0">
+              <div class="flex items-center space-x-1.5">
+                <p class="text-xs font-bold text-slate-800 truncate">${escapeHtml(t.title || '未分類')}</p>
+                <span class="text-[10px] font-semibold text-slate-400">${t.date.slice(5)}</span>
+              </div>
+              <div class="flex items-center space-x-1.5 mt-0.5">
+                <span class="px-1.5 py-0.2 bg-white rounded border border-slate-200/60 text-[9px] font-bold text-slate-600">${escapeHtml(t.category)}</span>
+                ${memoSub}
+              </div>
+            </div>
+          </div>
+          <div class="text-right flex-shrink-0">
+            <span class="text-xs font-black font-mono ${amountColor}">${amountPrefix}${(Number(t.amount) || 0).toLocaleString()}</span>
+          </div>
+        `;
+        listEl.appendChild(card);
+      });
+    }
+
+    function toggleSelectMode(enable) {
+      isSelectionMode = enable;
+      selectedTxIds.clear();
+
+      const normalHeader = document.getElementById('listHeaderNormal');
+      const selectHeader = document.getElementById('listHeaderSelect');
+
+      if (enable) {
+        normalHeader.classList.add('hidden');
+        selectHeader.classList.remove('hidden');
+      } else {
+        selectHeader.classList.add('hidden');
+        normalHeader.classList.remove('hidden');
+      }
+
+      updateSelectedCountBadge();
+      renderTransactionsList();
+    }
+
+    function toggleItemSelection(id) {
+      if (selectedTxIds.has(id)) {
+        selectedTxIds.delete(id);
+      } else {
+        selectedTxIds.add(id);
+      }
+      updateSelectedCountBadge();
+      renderTransactionsList();
+    }
+
+    function selectAllItems() {
+      const filtered = getFilteredTransactions();
+      if (selectedTxIds.size === filtered.length) {
+        selectedTxIds.clear();
+      } else {
+        filtered.forEach(t => selectedTxIds.add(t.id));
+      }
+      updateSelectedCountBadge();
+      renderTransactionsList();
+    }
+
+    function updateSelectedCountBadge() {
+      const badge = document.getElementById('selectedCountBadge');
+      if (badge) badge.textContent = `${selectedTxIds.size}件選択`;
+    }
+
+    // ==================== 明細詳細モーダル（編集・削除） ====================
+    function openTransactionDetailModal(t) {
+      const typeBadge = document.getElementById('detailTypeBadge');
+      if (t.type === 'income') {
+        typeBadge.textContent = '入金';
+        typeBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-800';
+      } else {
+        typeBadge.textContent = '支出';
+        typeBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800';
+      }
+
+      document.getElementById('detailAmount').textContent = `¥${(Number(t.amount) || 0).toLocaleString()}`;
+      document.getElementById('detailDate').textContent = t.date || '';
+      document.getElementById('detailCategory').textContent = t.category || 'その他';
+      document.getElementById('detailTitle').textContent = t.title || '未分類';
+      document.getElementById('detailMemo').textContent = t.memo || 'なし';
+
+      const editBtn = document.getElementById('btnEditDetail');
+      editBtn.onclick = () => {
+        closeModal('detailModal');
+        openEditModal(t);
+      };
+
+      const deleteBtn = document.getElementById('btnDeleteDetail');
+      deleteBtn.onclick = () => {
+        closeModal('detailModal');
+        triggerDeleteConfirmation([t.id], `「${t.title || 'この明細'}」(¥${(Number(t.amount) || 0).toLocaleString()}) を完全に削除します。本当によろしいですか？`);
+      };
+
+      openModal('detailModal');
+    }
+
+    function openEditModal(t) {
+      editingTxId = t.id;
+      setManualType(t.type);
+
+      document.getElementById('manualModalTitle').textContent = '明細を編集';
+      document.getElementById('manualDate').value = t.date;
+      document.getElementById('manualAmount').value = t.amount;
+      document.getElementById('manualCategory').value = t.category;
+      document.getElementById('manualTitle').value = t.title;
+      document.getElementById('manualMemo').value = t.memo || '';
+      document.getElementById('btnSaveManual').textContent = '変更を保存';
+
+      updateTitleSuggestions();
+      openModal('manualModal');
+    }
+
+    function confirmBulkDelete() {
+      if (selectedTxIds.size === 0) {
+        showToast('明細を選択してください', true);
+        return;
+      }
+      const ids = Array.from(selectedTxIds);
+      triggerDeleteConfirmation(ids, `選択した ${ids.length} 件の明細を完全に削除します。本当によろしいですか？`);
+    }
+
+    function triggerDeleteConfirmation(ids, message) {
+      document.getElementById('deleteConfirmMessage').textContent = message;
+      const btn = document.getElementById('btnExecuteDelete');
+      
+      btn.onclick = () => {
+        ids.forEach(id => {
+          transactions = transactions.filter(t => t.id !== id);
+          if (!deletedTxIds.includes(id)) {
+            deletedTxIds.push(id);
+          }
+        });
+        saveStoredData();
+        closeModal('deleteConfirmModal');
+        if (isSelectionMode) toggleSelectMode(false);
+        refreshDashboard();
+        showToast(`${ids.length}件の明細を削除しました`);
+      };
+
+      openModal('deleteConfirmModal');
+    }
+
+    // ==================== 手入力・編集の保存 ＆ 履歴サジェスト ====================
+    function openManualModal(type = 'expense') {
+      editingTxId = null;
+      setManualType(type);
+      document.getElementById('manualModalTitle').textContent = '手入力で記帳';
+      document.getElementById('manualAmount').value = '';
+      document.getElementById('manualTitle').value = '';
+      document.getElementById('manualMemo').value = '';
+      document.getElementById('manualDate').value = getTodayString();
+      document.getElementById('btnSaveManual').textContent = '登録する';
+      
+      updateTitleSuggestions();
+      openModal('manualModal');
+    }
+
+    function setManualType(type) {
+      currentManualType = type;
+      const btnExpense = document.getElementById('btnManualTypeExpense');
+      const btnIncome = document.getElementById('btnManualTypeIncome');
+      const titleGroup = document.getElementById('manualTitleGroup');
+
+      if (type === 'expense') {
+        btnExpense.className = 'py-2 rounded-xl bg-white text-rose-600 shadow-xs transition';
+        btnIncome.className = 'py-2 rounded-xl text-slate-600 transition';
+        if (titleGroup) titleGroup.classList.remove('hidden');
+      } else {
+        btnIncome.className = 'py-2 rounded-xl bg-white text-emerald-600 shadow-xs transition';
+        btnExpense.className = 'py-2 rounded-xl text-slate-600 transition';
+        if (titleGroup) titleGroup.classList.add('hidden');
+      }
+
+      const select = document.getElementById('manualCategory');
+      select.innerHTML = '';
+      const list = type === 'expense' ? expenseCategories : incomeCategories;
+      list.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+
+      updateTitleSuggestions();
+    }
+
+    function updateTitleSuggestions() {
+      const datalist = document.getElementById('titleSuggestions');
+      const chipsContainer = document.getElementById('quickTitleChips');
+      if (!datalist || !chipsContainer) return;
+
+      datalist.innerHTML = '';
+      chipsContainer.innerHTML = '';
+
+      if (currentManualType !== 'expense') return;
+
+      const freqMap = {};
+      transactions.forEach(t => {
+        if (t.type === 'expense' && t.title && t.title !== '支出' && t.title !== '未分類') {
+          freqMap[t.title] = (freqMap[t.title] || 0) + 1;
+        }
+      });
+
+      const sortedTitles = Object.keys(freqMap).sort((a, b) => freqMap[b] - freqMap[a]);
+
+      sortedTitles.forEach(title => {
+        const opt = document.createElement('option');
+        opt.value = title;
+        datalist.appendChild(opt);
+      });
+
+      sortedTitles.slice(0, 6).forEach(title => {
+        const chip = document.createElement('button');
+        chip.type = 'button';
+        chip.className = 'px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 text-[10px] font-bold border border-slate-200/60 active:scale-95 transition';
+        chip.textContent = title;
+        chip.onclick = () => {
+          document.getElementById('manualTitle').value = title;
+          const matchTx = transactions.find(t => t.title === title && t.category);
+          if (matchTx) {
+            document.getElementById('manualCategory').value = matchTx.category;
+          }
+        };
+        chipsContainer.appendChild(chip);
+      });
+    }
+
+    function saveManualTransaction() {
+      const date = document.getElementById('manualDate').value;
+      const amount = Number(document.getElementById('manualAmount').value);
+      const category = document.getElementById('manualCategory').value;
+      let title = document.getElementById('manualTitle').value.trim();
+      const memo = document.getElementById('manualMemo').value.trim();
+
+      if (!date || isNaN(amount) || amount <= 0) {
+        showToast('日付と有効な金額を入力してください', true);
+        return;
+      }
+
+      if (!title) {
+        title = currentManualType === 'income' ? category : '支出';
+      }
+
+      if (editingTxId) {
+        const target = transactions.find(t => t.id === editingTxId);
+        if (target) {
+          target.date = date;
+          target.type = currentManualType;
+          target.category = category;
+          target.amount = amount;
+          target.title = title;
+          target.memo = memo;
+        }
+        editingTxId = null;
+        showToast('明細を更新しました');
+      } else {
+        const newTx = {
+          id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          date,
+          type: currentManualType,
+          category,
+          amount,
+          title,
+          memo,
+          createdAt: new Date().toLocaleString('ja-JP')
+        };
+        transactions.unshift(newTx);
+        showToast('記帳を完了しました');
+      }
+
+      saveStoredData();
+      closeModal('manualModal');
+      refreshDashboard();
+    }
+
+    // ==================== レシート撮影＆Gemini AI解析 ＆ 中断機能 ====================
+    async function handleReceiptUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      if (!geminiApiKey) {
+        showToast('設定(⚙)からGemini APIキーを設定してください', true);
+        event.target.value = '';
+        return;
+      }
+
+      showOverlay(true);
+      receiptAbortController = new AbortController();
+
+      try {
+        const base64Data = await fileToBase64(file);
+        const result = await analyzeReceiptWithGemini(base64Data, file.type || 'image/jpeg', receiptAbortController.signal);
+
+        const newTx = {
+          id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
+          date: result.date || getTodayString(),
+          type: 'expense',
+          category: result.category || 'その他',
+          amount: Number(result.amount) || 0,
+          title: result.storeName || '買い物',
+          memo: result.itemsSummary || '',
+          createdAt: new Date().toLocaleString('ja-JP')
+        };
+
+        // 重複チェック
+        const isDuplicate = transactions.find(t => {
+          if (t.type !== 'expense') return false;
+          if (t.date !== newTx.date) return false;
+          if (Number(t.amount) !== Number(newTx.amount)) return false;
+          if (t.title === newTx.title) return true;
+          if (t.title && newTx.title && (t.title.includes(newTx.title) || newTx.title.includes(t.title))) return true;
+          return false;
+        });
+
+        if (isDuplicate) {
+          pendingDuplicateTx = newTx;
+          document.getElementById('dupStoreName').textContent = isDuplicate.title;
+          document.getElementById('dupDate').textContent = isDuplicate.date;
+          document.getElementById('dupAmount').textContent = `¥${Number(isDuplicate.amount).toLocaleString()}`;
+          openModal('duplicateReceiptModal');
+        } else {
+          transactions.unshift(newTx);
+          saveStoredData();
+          refreshDashboard();
+          showToast(`レシート解析完了: ¥${newTx.amount.toLocaleString()}`);
+        }
+      } catch (err) {
+        if (err.name === 'AbortError') {
+          console.log('Receipt upload aborted by user');
+        } else {
+          console.error('Receipt Error:', err);
+          showToast(`解析エラー: ${err.message}`, true);
+        }
+      } finally {
+        showOverlay(false);
+        receiptAbortController = null;
+        event.target.value = '';
+      }
+    }
+
+    // ★ 読み取り待機を途中で中断し、手入力画面を開く
+    function abortReceiptAndOpenManual() {
+      if (receiptAbortController) {
+        receiptAbortController.abort();
+        receiptAbortController = null;
+      }
+      showOverlay(false);
+      showToast('読み取りを中止し、手入力に切り替えました');
+      openManualModal('expense');
+    }
+
+    function cancelDuplicateReceipt() {
+      pendingDuplicateTx = null;
+      closeModal('duplicateReceiptModal');
+      showToast('レシートの重複登録を防止しました');
+    }
+
+    function forceSaveDuplicateReceipt() {
+      if (pendingDuplicateTx) {
+        transactions.unshift(pendingDuplicateTx);
+        saveStoredData();
+        refreshDashboard();
+        showToast(`レシートを登録しました: ¥${pendingDuplicateTx.amount.toLocaleString()}`);
+        pendingDuplicateTx = null;
+      }
+      closeModal('duplicateReceiptModal');
+    }
+
+    function fileToBase64(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const res = reader.result;
+          resolve(res.split(',')[1]);
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function analyzeReceiptWithGemini(base64Image, mimeType, abortSignal) {
+      const models = ['gemini-3.8-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+      let lastError = null;
+
+      const promptText = `あなたは高精度な日本のレシート解析アシスタントです。
+画像から以下の情報を抽出し、必ず指定のJSON形式のみで返答してください。Markdownのバッククォートは含めないでください。
+
+科目ルール:
+- 食料品・スーパー・コンビニ軽食: "食費"
+- レストラン・居酒屋・カフェ外食: "外食"
+- 洗剤・トイレットペーパー・消耗品: "日用品"
+- タバコ・加熱式タバコ・お酒: 必ず "嗜好品"
+- 本・ゲーム・おもちゃ・映画: "趣味・娯楽"
+- 電車・バス・タクシー・ガソリン: "交通費"
+- 飲み会・プレゼント: "交際費"
+- セミナー・書籍・ジム・フィットネス: "習い事・ジム"
+- どれにも当てはまらない場合: "その他"
+
+返却JSON構造:
+{
+  "storeName": "店舗名",
+  "date": "YYYY-MM-DD",
+  "amount": 合計金額の数値(整数),
+  "category": "食費" | "外食" | "日用品" | "嗜好品" | "趣味・娯楽" | "交通費" | "交際費" | "習い事・ジム" | "その他",
+  "itemsSummary": "主な購入品目の要約"
+}`;
+
+      for (const model of models) {
+        if (abortSignal && abortSignal.aborted) throw new DOMException('Aborted', 'AbortError');
+
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`;
+        const payload = {
+          contents: [{
+            parts: [
+              { text: promptText },
+              { inlineData: { mimeType: mimeType, data: base64Image } }
+            ]
+          }],
+          generationConfig: {
+            temperature: 0.1,
+            responseMimeType: "application/json"
+          }
+        };
+
+        try {
+          const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: abortSignal
+          });
+
+          if (!resp.ok) {
+            const errJson = await resp.json().catch(() => ({}));
+            throw new Error(errJson.error?.message || `HTTP ${resp.status}`);
+          }
+
+          const resData = await resp.json();
+          const rawText = resData.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!rawText) throw new Error('AIの解析結果が空でした');
+
+          const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+          return JSON.parse(cleanJson);
+        } catch (err) {
+          if (err.name === 'AbortError') throw err;
+          lastError = err;
+          if (err.message.includes('high demand') || err.message.includes('503')) {
+            await new Promise(r => setTimeout(r, 1000));
+          }
+        }
+      }
+
+      throw lastError || new Error('レシート解析に失敗しました');
+    }
+
+    // ==================== 分析・推移グラフ（年単位集計対応） ====================
+    function setAnalyticsGraphMode(mode) {
+      currentTrendGraphMode = mode;
+      
+      const btnDiff = document.getElementById('btnGraphModeDiff');
+      const btnBoth = document.getElementById('btnGraphModeBoth');
+      const btnExpense = document.getElementById('btnGraphModeExpense');
+      const subtitle = document.getElementById('trendSubtitle');
+
+      [btnDiff, btnBoth, btnExpense].forEach(btn => {
+        if (!btn) return;
+        btn.className = 'flex-1 py-1 rounded-xl text-slate-500 hover:text-slate-800 transition text-center';
+      });
+
+      if (mode === 'diff' && btnDiff) {
+        btnDiff.className = 'flex-1 py-1 rounded-xl bg-white text-blue-600 shadow-xs transition text-center';
+        if (subtitle) subtitle.textContent = '純収支（黒字は上、赤字は下）';
+      } else if (mode === 'both' && btnBoth) {
+        btnBoth.className = 'flex-1 py-1 rounded-xl bg-white text-blue-600 shadow-xs transition text-center';
+        if (subtitle) subtitle.textContent = '月別の収入と支出の並び比較';
+      } else if (mode === 'expense' && btnExpense) {
+        btnExpense.className = 'flex-1 py-1 rounded-xl bg-white text-blue-600 shadow-xs transition text-center';
+        if (subtitle) subtitle.textContent = '月別の支出ペース';
+      }
+
+      renderTrendChart();
+    }
+
+    function renderAnalyticsCharts() {
+      if (typeof Chart === 'undefined') return;
+      renderPieChart();
+      renderTrendChart();
+    }
+
+    function renderPieChart() {
+      const pieCanvas = document.getElementById('pieChartCanvas');
+      const emptyState = document.getElementById('pieEmptyState');
+      const labelEl = document.getElementById('pieChartPeriodLabel');
+
+      if (labelEl) {
+        labelEl.textContent = document.getElementById('targetPeriodDisplay')?.textContent || '当月';
+      }
+      if (!pieCanvas) return;
+
+      const filtered = getFilteredTransactions().filter(t => t.type === 'expense');
+      const catMap = {};
+      filtered.forEach(t => {
+        catMap[t.category] = (catMap[t.category] || 0) + (Number(t.amount) || 0);
+      });
+
+      const labels = Object.keys(catMap);
+      const data = Object.values(catMap);
+
+      if (pieChartInstance) {
+        pieChartInstance.destroy();
+        pieChartInstance = null;
+      }
+
+      if (labels.length === 0) {
+        if (emptyState) emptyState.classList.remove('hidden');
+        return;
+      }
+      if (emptyState) emptyState.classList.add('hidden');
+
+      const palette = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6', '#64748B'];
+
+      pieChartInstance = new Chart(pieCanvas.getContext('2d'), {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: data,
+            backgroundColor: palette.slice(0, labels.length),
+            borderWidth: 2,
+            borderColor: '#FFFFFF'
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: { boxWidth: 10, padding: 8, font: { size: 10 } }
+            }
+          },
+          cutout: '65%'
+        }
+      });
+    }
+
+    function renderTrendChart() {
+      const trendCanvas = document.getElementById('trendChartCanvas');
+      const emptyState = document.getElementById('trendEmptyState');
+      if (!trendCanvas) return;
+
+      const now = new Date();
+      const monthKeys = [];
+      const monthLabels = [];
+
+      // ★ 期間の月キー生成（6ヶ月 / 12ヶ月 / 年単位）
+      if (currentTrendPeriod === '6m') {
+        for (let i = 5; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          monthKeys.push(`${y}-${m}`);
+          monthLabels.push(`${d.getMonth() + 1}月`);
+        }
+      } else if (currentTrendPeriod === '12m') {
+        for (let i = 11; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+          const y = d.getFullYear();
+          const m = String(d.getMonth() + 1).padStart(2, '0');
+          monthKeys.push(`${y}-${m}`);
+          monthLabels.push(`${d.getMonth() + 1}月`);
+        }
+      } else if (currentTrendPeriod === 'year') {
+        // 選択された指定年（2026年、2025年など）の1月〜12月
+        const y = currentTrendSelectedYear;
+        for (let m = 1; m <= 12; m++) {
+          const mStr = String(m).padStart(2, '0');
+          monthKeys.push(`${y}-${mStr}`);
+          monthLabels.push(`${m}月`);
+        }
+      }
+
+      const monthlyIncome = {};
+      const monthlyExpense = {};
+      monthKeys.forEach(k => {
+        monthlyIncome[k] = 0;
+        monthlyExpense[k] = 0;
+      });
+
+      transactions.forEach(t => {
+        if (!t.date) return;
+        const key = t.date.slice(0, 7);
+        if (monthlyExpense[key] !== undefined) {
+          if (t.type === 'expense') {
+            monthlyExpense[key] += (Number(t.amount) || 0);
+          } else if (t.type === 'income') {
+            monthlyIncome[key] += (Number(t.amount) || 0);
+          }
+        }
+      });
+
+      const incomeValues = monthKeys.map(k => monthlyIncome[k]);
+      const expenseValues = monthKeys.map(k => monthlyExpense[k]);
+      const diffValues = monthKeys.map(k => monthlyIncome[k] - monthlyExpense[k]);
+
+      const hasAnyData = incomeValues.some(v => v > 0) || expenseValues.some(v => v > 0);
+
+      if (trendChartInstance) {
+        trendChartInstance.destroy();
+        trendChartInstance = null;
+      }
+
+      if (!hasAnyData && transactions.length === 0) {
+        if (emptyState) emptyState.classList.remove('hidden');
+        return;
+      }
+      if (emptyState) emptyState.classList.add('hidden');
+
+      let datasets = [];
+
+      if (currentTrendGraphMode === 'diff') {
+        datasets = [{
+          label: '収支 (差額)',
+          data: diffValues,
+          backgroundColor: diffValues.map(v => v >= 0 ? 'rgba(16, 185, 129, 0.85)' : 'rgba(239, 68, 68, 0.85)'),
+          hoverBackgroundColor: diffValues.map(v => v >= 0 ? '#10B981' : '#EF4444'),
+          borderRadius: 6,
+          borderSkipped: false
+        }];
+      } else if (currentTrendGraphMode === 'both') {
+        datasets = [
+          {
+            label: '収入',
+            data: incomeValues,
+            backgroundColor: 'rgba(16, 185, 129, 0.85)',
+            hoverBackgroundColor: '#10B981',
+            borderRadius: 5,
+            borderSkipped: false
+          },
+          {
+            label: '支出',
+            data: expenseValues,
+            backgroundColor: 'rgba(59, 130, 246, 0.85)',
+            hoverBackgroundColor: '#2563EB',
+            borderRadius: 5,
+            borderSkipped: false
+          }
+        ];
+      } else if (currentTrendGraphMode === 'expense') {
+        datasets = [{
+          label: '支出',
+          data: expenseValues,
+          backgroundColor: 'rgba(59, 130, 246, 0.85)',
+          hoverBackgroundColor: '#2563EB',
+          borderRadius: 6,
+          borderSkipped: false
+        }];
+      }
+
+      trendChartInstance = new Chart(trendCanvas.getContext('2d'), {
+        type: 'bar',
+        data: {
+          labels: monthLabels,
+          datasets: datasets
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              ticks: {
+                font: { size: 9 },
+                callback: function(val) {
+                  if (val === 0) return '¥0';
+                  return (val > 0 ? '+¥' : '-¥') + Math.abs(val).toLocaleString();
+                }
+              },
+              grid: {
+                color: (ctx) => (ctx.tick && ctx.tick.value === 0) ? '#94A3B8' : '#F1F5F9',
+                lineWidth: (ctx) => (ctx.tick && ctx.tick.value === 0) ? 1.5 : 1
+              }
+            },
+            x: {
+              ticks: { font: { size: 9 } },
+              grid: { display: false }
+            }
+          },
+          plugins: {
+            legend: {
+              display: currentTrendGraphMode === 'both',
+              position: 'top',
+              labels: { boxWidth: 10, font: { size: 10 } }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  const val = ctx.parsed.y;
+                  const label = ctx.dataset.label || '';
+                  if (currentTrendGraphMode === 'diff') {
+                    return (val >= 0 ? `黒字: +¥${val.toLocaleString()}` : `赤字: -¥${Math.abs(val).toLocaleString()}`);
+                  }
+                  return `${label}: ¥${val.toLocaleString()}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // ==================== 定期収支 ====================
+    function checkAndApplyRecurring() {
+      const now = new Date();
+      const currentYearMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const lastCheck = localStorage.getItem('pocket_recurring_last_check');
+
+      if (lastCheck === currentYearMonth) return;
+
+      let appliedCount = 0;
+      recurringRules.forEach(rule => {
+        let day = rule.day;
+        if (day === 'last') {
+          day = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+        } else {
+          day = Math.min(Number(day), new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate());
+        }
+
+        const dateStr = `${currentYearMonth}-${String(day).padStart(2, '0')}`;
+        const exists = transactions.some(t => t.date === dateStr && t.title === rule.title && t.amount === rule.amount);
+        if (!exists) {
+          transactions.unshift({
+            id: `tx_rec_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+            date: dateStr,
+            type: rule.type,
+            category: rule.category,
+            amount: rule.amount,
+            title: rule.title,
+            memo: '毎月の定期収支',
+            createdAt: new Date().toLocaleString('ja-JP')
+          });
+          appliedCount++;
+        }
+      });
+
+      if (appliedCount > 0) {
+        saveStoredData();
+        localStorage.setItem('pocket_recurring_last_check', currentYearMonth);
+        showToast(`定期収支 ${appliedCount} 件を自動登録しました`);
+      }
+    }
+
+    function openRecurringModal() {
+      setRecurringType('income');
+      document.getElementById('recTitle').value = '今月のお小遣い';
+      document.getElementById('recAmount').value = '';
+      openModal('recurringModal');
+    }
+
+    function setRecurringType(type) {
+      currentRecurringType = type;
+      const btnIncome = document.getElementById('btnRecTypeIncome');
+      const btnExpense = document.getElementById('btnRecTypeExpense');
+
+      if (type === 'income') {
+        btnIncome.className = 'py-1.5 rounded-xl bg-white text-emerald-600 shadow-xs';
+        btnExpense.className = 'py-1.5 rounded-xl text-slate-600';
+      } else {
+        btnExpense.className = 'py-1.5 rounded-xl bg-white text-rose-600 shadow-xs';
+        btnIncome.className = 'py-1.5 rounded-xl text-slate-600';
+      }
+
+      const select = document.getElementById('recCategory');
+      select.innerHTML = '';
+      const list = type === 'income' ? incomeCategories : expenseCategories;
+      list.forEach(c => {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        select.appendChild(opt);
+      });
+    }
+
+    function saveRecurringRule() {
+      const day = document.getElementById('recDay').value;
+      const title = document.getElementById('recTitle').value.trim();
+      const amount = Number(document.getElementById('recAmount').value);
+      const category = document.getElementById('recCategory').value;
+
+      if (!title || isNaN(amount) || amount <= 0) {
+        showToast('タイトルと有効な金額を入力してください', true);
+        return;
+      }
+
+      recurringRules.push({
+        id: `rec_${Date.now()}`,
+        day,
+        type: currentRecurringType,
+        category,
+        amount,
+        title
+      });
+
+      saveStoredData();
+      closeModal('recurringModal');
+      renderRecurringList();
+      showToast('定期ルールを保存しました');
+    }
+
+    function renderRecurringList() {
+      const listEl = document.getElementById('recurringList');
+      const emptyEl = document.getElementById('recurringEmpty');
+      listEl.innerHTML = '';
+
+      if (recurringRules.length === 0) {
+        emptyEl.classList.remove('hidden');
+        return;
+      }
+      emptyEl.classList.add('hidden');
+
+      recurringRules.forEach(rule => {
+        const card = document.createElement('div');
+        card.className = 'p-3 bg-slate-50/80 rounded-2xl border border-slate-100 flex items-center justify-between text-xs';
+        const color = rule.type === 'income' ? 'text-emerald-600' : 'text-rose-600';
+        const prefix = rule.type === 'income' ? '+¥' : '-¥';
+        const dayLabel = rule.day === 'last' ? '月末' : `${rule.day}日`;
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center space-x-1.5 mb-0.5">
+              <span class="px-1.5 py-0.2 bg-white border border-slate-200 rounded text-[9px] font-bold">${dayLabel}</span>
+              <span class="text-slate-400 font-semibold">${rule.category}</span>
+            </div>
+            <p class="font-bold text-slate-800">${escapeHtml(rule.title)}</p>
+          </div>
+          <div class="flex items-center space-x-2.5">
+            <span class="font-black font-mono ${color}">${prefix}${rule.amount.toLocaleString()}</span>
+            <button onclick="deleteRecurringRule('${rule.id}')" class="text-slate-400 hover:text-rose-600 p-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+        `;
+        listEl.appendChild(card);
+      });
+    }
+
+    function deleteRecurringRule(id) {
+      recurringRules = recurringRules.filter(r => r.id !== id);
+      saveStoredData();
+      renderRecurringList();
+      showToast('定期ルールを削除しました');
+    }
+
+    // ==================== スプレッドシート同期 ====================
+    async function triggerSmartSync() {
+      if (!gasEndpoint) {
+        showToast('設定からスプレッドシートURLを設定してください', true);
+        return;
+      }
+
+      const syncBtn = document.getElementById('btnSync');
+      const syncIcon = document.getElementById('syncIcon');
+      const syncText = document.getElementById('syncText');
+
+      syncBtn.disabled = true;
+      syncIcon.classList.add('animate-spin-custom');
+      syncText.textContent = '同期中...';
+
+      try {
+        const payload = {
+          action: "syncTwoWay",
+          pending: transactions,
+          deletedIds: deletedTxIds
+        };
+
+        const resp = await fetch(gasEndpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        const res = await resp.json();
+
+        if (res.status === 'success' && Array.isArray(res.transactions)) {
+          transactions = res.transactions;
+          deletedTxIds = [];
+          saveStoredData();
+          refreshDashboard();
+          showToast(`同期完了: ${transactions.length}件一致`);
+        } else {
+          throw new Error(res.message || 'レスポンスが不正です');
+        }
+      } catch (err) {
+        console.error('Sync Error:', err);
+        showToast(`同期エラー: ${err.message}`, true);
+      } finally {
+        syncBtn.disabled = false;
+        syncIcon.classList.remove('animate-spin-custom');
+        syncText.textContent = '同期メニュー';
+      }
+    }
+
+    function saveApiKey() {
+      const key = document.getElementById('geminiApiKey').value.trim();
+      geminiApiKey = key;
+      localStorage.setItem('pocket_gemini_key', key);
+      showToast('Gemini APIキーを保存しました');
+    }
+
+    async function testGeminiConnection() {
+      const statusEl = document.getElementById('geminiTestStatus');
+      const key = document.getElementById('geminiApiKey').value.trim();
+      if (!key) {
+        showToast('キーを入力してください', true);
+        return;
+      }
+
+      statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-blue-50 text-blue-700 block';
+      statusEl.textContent = 'Google AIに接続テスト中...';
+
+      try {
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${key}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ parts: [{ text: "ping" }] }] })
+        });
+
+        if (!resp.ok) {
+          const errData = await resp.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `HTTP ${resp.status}`);
+        }
+
+        statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-emerald-50 text-emerald-700 font-bold block';
+        statusEl.textContent = '✅ 接続成功！利用モデル: gemini-3.8-flash';
+      } catch (err) {
+        statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-rose-50 text-rose-700 font-bold block';
+        statusEl.textContent = `❌ エラー: ${err.message}`;
+      }
+    }
+
+    function saveGasUrl() {
+      const url = document.getElementById('gasUrl').value.trim();
+      gasEndpoint = url;
+      localStorage.setItem('pocket_gas_url', url);
+      showToast('スプレッドシートURLを保存しました');
+    }
+
+    function confirmResetAllData() {
+      triggerDeleteConfirmation(['ALL_RESET'], '全データを完全に初期化します。よろしいですか？');
+      document.getElementById('btnExecuteDelete').onclick = () => {
+        localStorage.clear();
+        transactions = [];
+        recurringRules = [];
+        deletedTxIds = [];
+        closeModal('deleteConfirmModal');
+        closeModal('settingsModal');
+        refreshDashboard();
+        showToast('データを初期化しました');
+      };
     }
 
     function switchView(viewName) {
+      if (isSelectionMode) toggleSelectMode(false);
+
       document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
       document.getElementById(`view-${viewName}`).classList.remove('hidden');
 
@@ -783,7 +2171,7 @@
         btn.classList.remove('text-blue-600', 'active');
         btn.classList.add('text-slate-400');
         const span = btn.querySelector('span');
-        if (span) span.classList.remove('font-semibold');
+        if (span) span.classList.remove('font-bold');
       });
 
       const activeBtn = document.getElementById(`tab-${viewName}`);
@@ -791,776 +2179,62 @@
         activeBtn.classList.remove('text-slate-400');
         activeBtn.classList.add('text-blue-600', 'active');
         const span = activeBtn.querySelector('span');
-        if (span) span.classList.add('font-semibold');
+        if (span) span.classList.add('font-bold');
       }
 
-      if (viewName === 'home') refreshDashboard();
-      else if (viewName === 'analytics') renderAnalyticsCharts();
-      else if (viewName === 'recurring') renderRecurringList();
-    }
-
-    function setPeriodFilter(filter) {
-      currentFilter = filter;
-      document.querySelectorAll('.period-chip').forEach(c => {
-        c.classList.remove('active', 'bg-blue-600', 'text-white', 'shadow-sm');
-        c.classList.add('bg-white', 'text-slate-600');
-      });
-
-      const activeChip = document.getElementById(`chip-${filter}`);
-      if (activeChip) {
-        activeChip.classList.remove('bg-white', 'text-slate-600');
-        activeChip.classList.add('active', 'bg-blue-600', 'text-white', 'shadow-sm');
-      }
-      refreshDashboard();
-    }
-
-    function openCustomPeriodModal() {
-      document.getElementById('customPeriodModal').classList.remove('hidden');
-    }
-
-    function applyCustomPeriod() {
-      const s = document.getElementById('customStartDate').value;
-      const e = document.getElementById('customEndDate').value;
-      if (!s || !e) return;
-      customDateRange = { start: s, end: e };
-      closeModal('customPeriodModal');
-      setPeriodFilter('custom');
-    }
-
-    function getFilteredTransactions() {
-      const now = new Date();
-      const currentYear = now.getFullYear();
-      const currentMonth = now.getMonth() + 1;
-
-      return transactions.filter(t => {
-        const tDate = new Date(t.date);
-        const tYear = tDate.getFullYear();
-        const tMonth = tDate.getMonth() + 1;
-
-        if (currentFilter === 'this_month') {
-          return tYear === currentYear && tMonth === currentMonth;
-        } else if (currentFilter === 'last_month') {
-          const lastMonthYear = currentMonth === 1 ? currentYear - 1 : currentYear;
-          const lastMonth = currentMonth === 1 ? 12 : currentMonth - 1;
-          return tYear === lastMonthYear && tMonth === lastMonth;
-        } else if (currentFilter === 'last_3_months') {
-          const threeMonthsAgo = new Date();
-          threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 2);
-          threeMonthsAgo.setDate(1);
-          return tDate >= threeMonthsAgo && tDate <= now;
-        } else if (currentFilter === 'this_year') {
-          return tYear === currentYear;
-        } else if (currentFilter === 'custom') {
-          if (!customDateRange.start || !customDateRange.end) return true;
-          return t.date >= customDateRange.start && t.date <= customDateRange.end;
-        }
-        return true;
-      });
-    }
-
-    function refreshDashboard() {
-      const filtered = getFilteredTransactions();
-      let allIncome = 0;
-      let allExpense = 0;
-      transactions.forEach(t => {
-        if (t.type === 'income') allIncome += t.amount;
-        else allExpense += t.amount;
-      });
-      const totalBalance = allIncome - allExpense;
-
-      let periodIncome = 0;
-      let periodExpense = 0;
-      filtered.forEach(t => {
-        if (t.type === 'income') periodIncome += t.amount;
-        else periodExpense += t.amount;
-      });
-      const periodNet = periodIncome - periodExpense;
-
-      document.getElementById('totalBalanceVal').textContent = totalBalance.toLocaleString();
-      document.getElementById('periodIncomeVal').textContent = `+¥${periodIncome.toLocaleString()}`;
-      document.getElementById('periodExpenseVal').textContent = `-¥${periodExpense.toLocaleString()}`;
-
-      const netEl = document.getElementById('periodNetVal');
-      if (periodNet > 0) {
-        netEl.textContent = `+¥${periodNet.toLocaleString()}`;
-        netEl.className = 'text-sm font-bold font-mono text-emerald-600';
-      } else if (periodNet < 0) {
-        netEl.textContent = `-¥${Math.abs(periodNet).toLocaleString()}`;
-        netEl.className = 'text-sm font-bold font-mono text-rose-500';
-      } else {
-        netEl.textContent = `¥0`;
-        netEl.className = 'text-sm font-bold font-mono text-slate-500';
-      }
-
-      document.getElementById('transactionCountLabel').textContent = `${filtered.length}件の取引`;
-      renderTransactionsList(filtered);
-    }
-
-    function renderTransactionsList(targetList) {
-      const listContainer = document.getElementById('transactionList');
-      const emptyState = document.getElementById('emptyListState');
-      const catFilter = document.getElementById('filterCategory').value;
-
-      let list = targetList || getFilteredTransactions();
-      if (catFilter !== 'all') list = list.filter(t => t.category === catFilter);
-      list.sort((a, b) => new Date(b.date) - new Date(a.date));
-
-      listContainer.innerHTML = '';
-      if (list.length === 0) {
-        emptyState.classList.remove('hidden');
-        return;
-      }
-      emptyState.classList.add('hidden');
-
-      list.forEach(item => {
-        const isIncome = item.type === 'income';
-        const catInfo = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES].find(c => c.name === item.category) || { icon: '📝', color: '#8E8E93' };
-
-        const row = document.createElement('div');
-        row.className = 'flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100';
-        row.innerHTML = `
-          <div class="flex items-center space-x-3 overflow-hidden">
-            <div class="w-10 h-10 rounded-2xl flex items-center justify-center text-lg flex-shrink-0" style="background-color: ${catInfo.color}15;">
-              <span>${catInfo.icon}</span>
-            </div>
-            <div class="truncate">
-              <div class="flex items-center space-x-1.5">
-                <span class="font-bold text-xs text-slate-800 truncate">${escapeHtml(item.title)}</span>
-                <span class="text-[10px] text-slate-400">${item.date.slice(5)}</span>
-              </div>
-              <div class="flex items-center space-x-1.5 mt-0.5">
-                <span class="text-[10px] px-1.5 py-0.5 rounded-md font-medium text-slate-600 bg-white border border-slate-200">${escapeHtml(item.category)}</span>
-                ${item.memo ? `<span class="text-[10px] text-slate-400 truncate">${escapeHtml(item.memo)}</span>` : ''}
-              </div>
-            </div>
-          </div>
-          <div class="flex items-center space-x-2 flex-shrink-0">
-            <span class="text-xs font-bold font-mono ${isIncome ? 'text-emerald-600' : 'text-slate-900'}">
-              ${isIncome ? '+' : '-'}¥${Number(item.amount).toLocaleString()}
-            </span>
-            <button onclick="deleteTransaction('${item.id}')" class="p-1 text-slate-300 hover:text-rose-500">✕</button>
-          </div>
-        `;
-        listContainer.appendChild(row);
-      });
-    }
-
-    function deleteTransaction(id) {
-      transactions = transactions.filter(t => t.id !== id);
-      persistData();
-      refreshDashboard();
-      showToast('明細を削除しました');
-    }
-
-    function triggerReceiptCamera() {
-      const input = document.getElementById('cameraInput');
-      input.value = '';
-      input.click();
-    }
-
-    function compressImageFile(file, maxDimension = 1200, quality = 0.8) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          const img = new Image();
-          img.onload = () => {
-            let w = img.width;
-            let h = img.height;
-            if (w > maxDimension || h > maxDimension) {
-              if (w > h) {
-                h = Math.round((h * maxDimension) / w);
-                w = maxDimension;
-              } else {
-                w = Math.round((w * maxDimension) / h);
-                h = maxDimension;
-              }
-            }
-            const canvas = document.createElement('canvas');
-            canvas.width = w;
-            canvas.height = h;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, w, h);
-            const dataUrl = canvas.toDataURL('image/jpeg', quality);
-            resolve(dataUrl);
-          };
-          img.onerror = () => reject(new Error('画像の展開に失敗しました'));
-          img.src = e.target.result;
-        };
-        reader.onerror = () => reject(new Error('画像の読み込みに失敗しました'));
-        reader.readAsDataURL(file);
-      });
-    }
-
-    async function handleReceiptSelected(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      const modal = document.getElementById('receiptModal');
-      const previewImg = document.getElementById('receiptPreviewImg');
-      const spinner = document.getElementById('receiptLoadingSpinner');
-      const statusText = document.getElementById('aiStatusText');
-      const saveBtn = document.getElementById('btnSaveReceipt');
-      const errorBox = document.getElementById('receiptErrorBox');
-
-      modal.classList.remove('hidden');
-      previewImg.classList.add('hidden');
-      spinner.classList.remove('hidden');
-      errorBox.classList.add('hidden');
-      saveBtn.disabled = true;
-      statusText.textContent = '写真を軽量化中...';
-
-      try {
-        const compressedDataUrl = await compressImageFile(file);
-        previewImg.src = compressedDataUrl;
-        previewImg.classList.remove('hidden');
-
-        if (!geminiApiKey) {
-          geminiApiKey = (localStorage.getItem('pm_gemini_api_key') || '').trim();
-        }
-
-        if (!geminiApiKey) {
-          spinner.classList.add('hidden');
-          saveBtn.disabled = false;
-          showErrorInBox('APIキーが未設定です。右上の設定(⚙)からGemini APIキーを登録してください。');
-          return;
-        }
-
-        statusText.textContent = 'Gemini AIが解析中...';
-        const base64Data = compressedDataUrl.replace(/^data:image\/(jpeg|png|webp);base64,/, '');
-        await parseReceiptWithGemini(base64Data, 'image/jpeg');
-      } catch (err) {
-        console.error(err);
-        showErrorInBox(err.message || '不明なエラーが発生しました');
-      } finally {
-        spinner.classList.add('hidden');
-        saveBtn.disabled = false;
+      if (viewName === 'home') {
+        refreshDashboard();
+      } else if (viewName === 'analytics') {
+        setTimeout(() => { renderAnalyticsCharts(); }, 60);
+      } else if (viewName === 'recurring') {
+        renderRecurringList();
       }
     }
 
-    function showErrorInBox(msg) {
-      lastReceiptError = msg;
-      const errorBox = document.getElementById('receiptErrorBox');
-      const errorDetail = document.getElementById('receiptErrorDetail');
-      errorDetail.textContent = msg;
-      errorBox.classList.remove('hidden');
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
     }
 
-    function copyReceiptError() {
-      if (!lastReceiptError) return;
-      const ta = document.createElement('textarea');
-      ta.value = lastReceiptError;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      showToast('エラーメッセージをコピーしました');
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
     }
 
-    const GEMINI_MODELS = [
-      'gemini-3.8-flash',
-      'gemini-3.1-flash-lite',
-      'gemini-3.5-flash',
-      'gemini-3-flash-preview'
-    ];
-
-    async function callGeminiWithAutoFallback(payload, apiKey, onStatus) {
-      let lastErrMsg = '';
-
-      for (const model of GEMINI_MODELS) {
-        if (onStatus) onStatus(`モデル ${model} で通信中...`);
-
-        for (let attempt = 1; attempt <= 2; attempt++) {
-          try {
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-            const res = await fetch(endpoint, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify(payload)
-            });
-
-            if (res.ok) {
-              const data = await res.json();
-              return { data, model };
-            }
-
-            const errData = await res.json().catch(() => ({}));
-            const errMsg = errData.error?.message || `HTTP ${res.status}`;
-            lastErrMsg = errMsg;
-
-            const isHighDemand = errMsg.includes('high demand') || res.status === 503 || res.status === 429;
-            if (isHighDemand && attempt === 1) {
-              if (onStatus) onStatus(`混雑のため待機して再試行中 (${model})...`);
-              await new Promise(r => setTimeout(r, 1500));
-              continue;
-            }
-            break;
-          } catch (netErr) {
-            lastErrMsg = netErr.message || '通信エラー';
-            break;
-          }
-        }
-      }
-
-      throw new Error(lastErrMsg || '現在Google AIサーバーが高負荷です。数秒後に再度お試しください。');
+    function showOverlay(show) {
+      const el = document.getElementById('receiptLoadingOverlay');
+      if (show) el.classList.remove('hidden');
+      else el.classList.add('hidden');
     }
 
-    async function parseReceiptWithGemini(base64Data, mimeType = 'image/jpeg') {
-      const cleanKey = geminiApiKey.trim();
-      const statusText = document.getElementById('aiStatusText');
-
-      // AIに対してタバコやお酒を「嗜好品」に分類するルールを明示
-      const prompt = `このレシート画像から必要な情報を抽出し、必ず以下のキーを持つJSONオブジェクトのみを出力してください。マークダウンの装飾や前後の解説テキストは一切出力しないでください。
-{
-  "store": "店名または発行元（分からなければ品名）",
-  "amount": 1280,
-  "date": "${getTodayString()}",
-  "category": "食費 / 外食・カフェ / 日用品 / 嗜好品 / 趣味・娯楽 / 交際費 / 交通費 / 通信・光熱 / 衣服・美容 / その他 の中から一番近い1つ（※タバコ・電子タバコ・お酒などの嗜好品は必ず「嗜好品」に分類してください）",
-  "memo": "購入品目をカンマ区切りで要約"
-}`;
-
-      const payload = {
-        contents: [
-          {
-            parts: [
-              { text: prompt },
-              {
-                inlineData: {
-                  mimeType: mimeType,
-                  data: base64Data
-                }
-              }
-            ]
-          }
-        ]
-      };
-
-      const { data: result, model: usedModel } = await callGeminiWithAutoFallback(
-        payload,
-        cleanKey,
-        (msg) => { if (statusText) statusText.textContent = msg; }
-      );
-
-      let text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      if (!text) {
-        throw new Error('AIからテキスト応答を受信できませんでした');
-      }
-
-      text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-      const jsonStart = text.indexOf('{');
-      const jsonEnd = text.lastIndexOf('}');
-      if (jsonStart !== -1 && jsonEnd !== -1) {
-        text = text.substring(jsonStart, jsonEnd + 1);
-      }
-
-      const parsed = JSON.parse(text);
-      if (parsed.store) document.getElementById('aiStoreName').value = parsed.store;
-      if (parsed.amount) document.getElementById('aiAmount').value = Number(parsed.amount);
-      if (parsed.date) document.getElementById('aiDate').value = parsed.date;
-      if (parsed.memo) document.getElementById('aiMemo').value = parsed.memo;
-      if (parsed.category) {
-        const sel = document.getElementById('aiCategory');
-        for (let i = 0; i < sel.options.length; i++) {
-          if (sel.options[i].value === parsed.category) {
-            sel.selectedIndex = i;
-            break;
-          }
-        }
-      }
-      showToast(`読み取り完了（${usedModel}）`);
-    }
-
-    function saveReceiptTransaction(e) {
-      e.preventDefault();
-      const store = document.getElementById('aiStoreName').value.trim();
-      const amount = Number(document.getElementById('aiAmount').value);
-      const date = document.getElementById('aiDate').value;
-      const category = document.getElementById('aiCategory').value;
-      const memo = document.getElementById('aiMemo').value.trim();
-
-      if (!store || !amount || !date) return;
-
-      transactions.unshift({
-        id: 'tx_' + Date.now(),
-        date: date,
-        type: 'expense',
-        category: category,
-        title: store,
-        amount: amount,
-        memo: memo
-      });
-
-      persistData();
-      closeModal('receiptModal');
-      refreshDashboard();
-      showToast('支出を登録しました');
-    }
-
-    function openManualModal(type) {
-      currentManualType = type;
-      setManualType(type);
-      document.getElementById('manualAmount').value = '';
-      document.getElementById('manualTitle').value = '';
-      document.getElementById('manualMemo').value = '';
-      document.getElementById('manualDate').value = getTodayString();
-      document.getElementById('manualModal').classList.remove('hidden');
-    }
-
-    function setManualType(type) {
-      currentManualType = type;
-      const btnExp = document.getElementById('btnTypeExpense');
-      const btnInc = document.getElementById('btnTypeIncome');
-      if (type === 'expense') {
-        btnExp.className = 'flex-1 py-1.5 rounded-lg bg-white shadow-sm text-rose-600 font-bold';
-        btnInc.className = 'flex-1 py-1.5 rounded-lg text-slate-500 font-medium';
-        renderCategoryChips(EXPENSE_CATEGORIES);
-      } else {
-        btnInc.className = 'flex-1 py-1.5 rounded-lg bg-white shadow-sm text-emerald-600 font-bold';
-        btnExp.className = 'flex-1 py-1.5 rounded-lg text-slate-500 font-medium';
-        renderCategoryChips(INCOME_CATEGORIES);
-      }
-    }
-
-    function renderCategoryChips(categories) {
-      const container = document.getElementById('manualCategoryChips');
-      container.innerHTML = '';
-      const hiddenInput = document.getElementById('manualSelectedCategory');
-      hiddenInput.value = categories[0].name;
-
-      categories.forEach((cat, idx) => {
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = `cat-chip px-2.5 py-1.5 rounded-xl border text-xs font-medium ${
-          idx === 0 ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-700 border-slate-200'
-        }`;
-        btn.textContent = `${cat.icon} ${cat.name}`;
-        btn.onclick = function() {
-          hiddenInput.value = cat.name;
-          container.querySelectorAll('.cat-chip').forEach(b => {
-            b.className = 'cat-chip px-2.5 py-1.5 rounded-xl border text-xs font-medium bg-white text-slate-700 border-slate-200';
-          });
-          btn.className = 'cat-chip px-2.5 py-1.5 rounded-xl border text-xs font-medium bg-blue-600 text-white border-blue-600';
-        };
-        container.appendChild(btn);
-      });
-    }
-
-    function saveManualTransaction(e) {
-      e.preventDefault();
-      const amount = Number(document.getElementById('manualAmount').value);
-      const category = document.getElementById('manualSelectedCategory').value;
-      const title = document.getElementById('manualTitle').value.trim();
-      const date = document.getElementById('manualDate').value;
-      const memo = document.getElementById('manualMemo').value.trim();
-
-      if (!amount || !title || !date || !category) return;
-
-      transactions.unshift({
-        id: 'tx_' + Date.now(),
-        date: date,
-        type: currentManualType,
-        category: category,
-        title: title,
-        amount: amount,
-        memo: memo
-      });
-
-      persistData();
-      closeModal('manualModal');
-      refreshDashboard();
-      showToast('記帳しました');
-    }
-
-    function openRecurringModal() {
-      document.getElementById('recName').value = '';
-      document.getElementById('recAmount').value = '';
-      setRecurringType('income');
-      document.getElementById('recurringModal').classList.remove('hidden');
-    }
-
-    function setRecurringType(type) {
-      currentRecurringType = type;
-      const btnInc = document.getElementById('btnRecIncome');
-      const btnExp = document.getElementById('btnRecExpense');
-      const catSelect = document.getElementById('recCategory');
-
-      catSelect.innerHTML = '';
-      if (type === 'income') {
-        btnInc.className = 'flex-1 py-1.5 rounded-lg bg-white shadow-sm text-emerald-600 font-bold';
-        btnExp.className = 'flex-1 py-1.5 rounded-lg text-slate-500 font-medium';
-        INCOME_CATEGORIES.forEach(c => {
-          const opt = document.createElement('option');
-          opt.value = c.name;
-          opt.textContent = `${c.icon} ${c.name}`;
-          catSelect.appendChild(opt);
-        });
-      } else {
-        btnExp.className = 'flex-1 py-1.5 rounded-lg bg-white shadow-sm text-rose-600 font-bold';
-        btnInc.className = 'flex-1 py-1.5 rounded-lg text-slate-500 font-medium';
-        EXPENSE_CATEGORIES.forEach(c => {
-          const opt = document.createElement('option');
-          opt.value = c.name;
-          opt.textContent = `${c.icon} ${c.name}`;
-          catSelect.appendChild(opt);
-        });
-      }
-    }
-
-    function saveRecurringItem(e) {
-      e.preventDefault();
-      const name = document.getElementById('recName').value.trim();
-      const amount = Number(document.getElementById('recAmount').value);
-      const day = document.getElementById('recDay').value;
-      const category = document.getElementById('recCategory').value;
-
-      if (!name || !amount) return;
-
-      recurringRules.push({
-        id: 'rec_' + Date.now(),
-        type: currentRecurringType,
-        name: name,
-        amount: amount,
-        day: day,
-        category: category,
-        lastAppliedMonth: ''
-      });
-
-      persistData();
-      closeModal('recurringModal');
-      renderRecurringList();
-      checkPendingRecurringPayments();
-      showToast('定期ルールを登録しました');
-    }
-
-    function renderRecurringList() {
-      const container = document.getElementById('recurringList');
-      const empty = document.getElementById('emptyRecurringState');
-
-      container.innerHTML = '';
-      if (recurringRules.length === 0) {
-        empty.classList.remove('hidden');
-        return;
-      }
-      empty.classList.add('hidden');
-
-      recurringRules.forEach(rule => {
-        const isIncome = rule.type === 'income';
-        const dayText = rule.day === '99' ? '毎月末' : `毎月 ${rule.day} 日`;
-        const div = document.createElement('div');
-        div.className = 'flex items-center justify-between p-3.5 bg-slate-50 border border-slate-100 rounded-2xl';
-        div.innerHTML = `
-          <div>
-            <div class="flex items-center space-x-2">
-              <span class="text-[10px] px-2 py-0.5 rounded-full font-bold ${isIncome ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">
-                ${isIncome ? '定期入金' : '定期出金'}
-              </span>
-              <span class="font-bold text-xs text-slate-800">${escapeHtml(rule.name)}</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-slate-200/70 text-slate-600 font-semibold">${dayText}</span>
-            </div>
-            <div class="text-[11px] text-slate-500 mt-1 font-mono">
-              科目: ${rule.category} | <span class="${isIncome ? 'text-emerald-600 font-bold' : 'text-rose-600 font-bold'}">${isIncome ? '+' : '-'}¥${Number(rule.amount).toLocaleString()}</span>
-            </div>
-          </div>
-          <button onclick="deleteRecurring('${rule.id}')" class="p-1 text-slate-300 hover:text-rose-500">✕</button>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function deleteRecurring(ruleId) {
-      recurringRules = recurringRules.filter(r => r.id !== ruleId);
-      persistData();
-      renderRecurringList();
-      showToast('定期ルールを削除しました');
-    }
-
-    function initAnalyticsCharts() {
-      const pieCtx = document.getElementById('categoryPieChart').getContext('2d');
-      pieChartInstance = new Chart(pieCtx, {
-        type: 'doughnut',
-        data: { labels: [], datasets: [{ data: [], backgroundColor: [] }] },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
-
-      const trendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
-      trendChartInstance = new Chart(trendCtx, {
-        type: 'bar',
-        data: { labels: [], datasets: [{ label: '支出', data: [], backgroundColor: 'rgba(255, 59, 48, 0.75)' }] },
-        options: { responsive: true, maintainAspectRatio: false }
-      });
-    }
-
-    function renderAnalyticsCharts() {
-      const filtered = getFilteredTransactions().filter(t => t.type === 'expense');
-      const catTotals = {};
-      filtered.forEach(t => { catTotals[t.category] = (catTotals[t.category] || 0) + t.amount; });
-
-      const sortedCats = Object.keys(catTotals);
-      const data = sortedCats.map(k => catTotals[k]);
-      const colors = sortedCats.map(k => {
-        const found = EXPENSE_CATEGORIES.find(c => c.name === k);
-        return found ? found.color : '#8E8E93';
-      });
-
-      if (pieChartInstance) {
-        pieChartInstance.data.labels = sortedCats.length ? sortedCats : ['支出なし'];
-        pieChartInstance.data.datasets[0].data = data.length ? data : [1];
-        pieChartInstance.data.datasets[0].backgroundColor = colors.length ? colors : ['#E5E5EA'];
-        pieChartInstance.update();
-      }
-    }
-
-    function saveGeminiApiKey() {
-      const val = document.getElementById('geminiApiKeyInput').value.trim();
-      geminiApiKey = val;
-      localStorage.setItem('pm_gemini_api_key', val);
-      showToast('APIキーを保存しました');
-    }
-
-    async function testGeminiConnection() {
-      const val = document.getElementById('geminiApiKeyInput').value.trim();
-      const resultEl = document.getElementById('geminiTestResult');
-      resultEl.classList.remove('hidden');
-
-      if (!val) {
-        resultEl.className = 'text-[11px] pt-1 font-medium text-rose-500';
-        resultEl.textContent = '❌ APIキーを入力してください';
-        return;
-      }
-
-      resultEl.className = 'text-[11px] pt-1 font-medium text-blue-600 animate-pulse';
-      resultEl.textContent = 'Gemini AI サーバーへ接続テスト中...';
-
-      try {
-        const testPayload = {
-          contents: [{ parts: [{ text: 'Respond with OK' }] }]
-        };
-
-        const { model: usedModel } = await callGeminiWithAutoFallback(
-          testPayload,
-          val,
-          (msg) => { resultEl.textContent = msg; }
-        );
-
-        resultEl.className = 'text-[11px] pt-1 font-medium text-emerald-600';
-        resultEl.textContent = `✅ 接続成功！利用モデル: ${usedModel}`;
-        geminiApiKey = val;
-        localStorage.setItem('pm_gemini_api_key', val);
-      } catch (err) {
-        resultEl.className = 'text-[11px] pt-1 font-medium text-rose-600 select-text';
-        resultEl.textContent = `❌ エラー: ${err.message}`;
-      }
-    }
-
-    function saveGasSettings() {
-      gasEndpoint = document.getElementById('gasEndpointUrl').value.trim();
-      localStorage.setItem('pm_gas_endpoint', gasEndpoint);
-      showToast('スプレッドシートURLを保存しました');
-    }
-
-    function openSyncModal() {
-      document.getElementById('syncModal').classList.remove('hidden');
-    }
-
-    // 📥 スプレッドシートから読み込む（PC編集内容をスマホに反映）
-    async function loadFromSpreadsheet() {
-      if (!gasEndpoint) {
-        showToast('設定画面でURLを入力してください');
-        switchView('settings');
-        return;
-      }
-      showToast('スプレッドシートからデータを受信中...');
-      try {
-        const res = await fetch(gasEndpoint, { method: 'GET' });
-        if (!res.ok) throw new Error('通信ステータス異常');
-        const data = await res.json();
-        
-        if (Array.isArray(data)) {
-          if (data.length === 0) {
-            showToast('スプレッドシートに明細データがありません');
-            return;
-          }
-          transactions = data;
-          persistData();
-          refreshDashboard();
-          if (!document.getElementById('view-analytics').classList.contains('hidden')) {
-            renderAnalyticsCharts();
-          }
-          closeModal('syncModal');
-          showToast(`スプレッドシートから${data.length}件の明細を反映しました！`);
-        } else {
-          showToast('受信データが正しい形式ではありません');
-        }
-      } catch (err) {
-        console.error(err);
-        showToast('スプレッドシートからの読み込みに失敗しました');
-      }
-    }
-
-    // 📤 スプレッドシートへ送信する（スマホのデータを上書きバックアップ）
-    async function uploadToSpreadsheet() {
-      if (!gasEndpoint) {
-        showToast('設定画面でURLを入力してください');
-        switchView('settings');
-        return;
-      }
-      showToast('スプレッドシートへ送信中...');
-      try {
-        await fetch(gasEndpoint, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'syncAll', transactions: transactions })
-        });
-        closeModal('syncModal');
-        showToast('スプレッドシートへ送信完了');
-      } catch (e) {
-        showToast('同期に失敗しました');
-      }
-    }
-
-    function testGasConnection() {
-      if (!gasEndpoint) {
-        showToast('URLを入力してください');
-        return;
-      }
-      showToast('接続テスト実行中...');
-      fetch(gasEndpoint, { mode: 'no-cors' })
-        .then(() => showToast('接続成功（通信確認済）'))
-        .catch(() => showToast('通信エラーが発生しました'));
-    }
-
-    function loadSampleDemoData() {
-      seedInitialDemoData();
-      refreshDashboard();
-      showToast('デモデータを投入しました');
-      switchView('home');
-    }
-
-    function clearAllDataConfirm() {
-      transactions = [];
-      persistData();
-      refreshDashboard();
-      showToast('データをすべて消去しました');
-    }
-
-    function closeModal(modalId) {
-      document.getElementById(modalId).classList.add('hidden');
-    }
-
-    function showToast(message) {
+    let toastTimer = null;
+    function showToast(msg, isError = false) {
       const toast = document.getElementById('toast');
-      document.getElementById('toastMessage').textContent = message;
-      toast.classList.remove('opacity-0', '-translate-y-4');
-      toast.classList.add('opacity-100', 'translate-y-0');
-      setTimeout(() => {
-        toast.classList.remove('opacity-100', 'translate-y-0');
-        toast.classList.add('opacity-0', '-translate-y-4');
-      }, 3500);
+      toast.textContent = msg;
+      toast.className = `fixed bottom-20 left-1/2 -translate-x-1/2 z-50 text-xs font-bold px-4 py-2 rounded-full shadow-2xl transition-all duration-300 ${
+        isError ? 'bg-rose-600 text-white' : 'bg-slate-900 text-white'
+      }`;
+      toast.style.opacity = '1';
+      toast.style.transform = 'translate(-50%, -6px)';
+
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translate(-50%, 0px)';
+      }, 2500);
+    }
+
+    function getTodayString() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
     }
 
     function escapeHtml(str) {
       if (!str) return '';
-      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
   </script>
 </body>
