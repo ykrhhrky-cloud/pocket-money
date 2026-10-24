@@ -8,7 +8,7 @@
   <!-- iOS用アプリアイコン・PWA設定 -->
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="お小遣いノート">
+  <meta name="apple-mobile-web-app-title" content="お小遣い管理アプリ">
   <link id="dynamicAppleIcon" rel="apple-touch-icon" href="">
   <link id="dynamicFavicon" rel="icon" type="image/svg+xml" href="">
 
@@ -556,7 +556,7 @@
       initAnalyticsCharts();
     };
 
-    // 正方形のブルー地に白の「¥」を描画（iOS側で公式の角丸四角に自動マスクされます）
+    // 正方形のブルー地に白の「¥」を描画（iOS側で公式の角丸四角に自動マスク）
     function setupAppIcons() {
       const canvas = document.createElement('canvas');
       canvas.width = 180;
@@ -936,6 +936,11 @@
         previewImg.src = compressedDataUrl;
         previewImg.classList.remove('hidden');
 
+        // メモリから再取得
+        if (!geminiApiKey) {
+          geminiApiKey = localStorage.getItem('pm_gemini_api_key') || '';
+        }
+
         if (!geminiApiKey) {
           spinner.classList.add('hidden');
           saveBtn.disabled = false;
@@ -946,10 +951,11 @@
         }
 
         statusText.textContent = 'Gemini AIが解析中...';
-        const base64Data = compressedDataUrl.split(',')[1];
+        const base64Data = compressedDataUrl.replace(/^data:image\/(jpeg|png|webp);base64,/, '');
         await parseReceiptWithGemini(base64Data, 'image/jpeg');
       } catch (err) {
         console.error(err);
+        statusText.textContent = '解析エラー: ' + (err.message || '手入力をご利用ください');
         showToast('解析エラー: ' + (err.message || '手入力をご利用ください'));
       } finally {
         spinner.classList.add('hidden');
@@ -957,54 +963,54 @@
       }
     }
 
-    async function parseReceiptWithGemini(base64Data, mimeType) {
+    async function parseReceiptWithGemini(base64Data, mimeType = 'image/jpeg') {
       const prompt = `このレシート画像から必要な情報を抽出し、必ず以下のキーを持つJSONオブジェクトのみを出力してください。マークダウンの装飾や前後の解説テキストは一切出力しないでください。
-      {
-        "store": "店名または発行元（分からなければ品名）",
-        "amount": 合計金額（数値のみ、例: 1280）,
-        "date": "購入日（YYYY-MM-DD形式、不明なら今日 ${getTodayString()}）",
-        "category": "食費 / 外食・カフェ / 日用品 / 交際費 / 交通費 / 娯楽・ホビー / 通信・光熱 / 衣服・美容 / その他 の中から一番近い1つ",
-        "memo": "購入品目をカンマ区切りで要約"
-      }`;
+{
+  "store": "店名または発行元（分からなければ品名）",
+  "amount": 1280,
+  "date": "${getTodayString()}",
+  "category": "食費 / 外食・カフェ / 日用品 / 交際費 / 交通費 / 娯楽・ホビー / 通信・光熱 / 衣服・美容 / その他 の中から一番近い1つ",
+  "memo": "購入品目をカンマ区切りで要約"
+}`;
 
-      // 安定性の高いモデル順にフォールバック
-      const candidateModels = ['gemini-2.5-flash', 'gemini-1.5-flash'];
-      let lastError = null;
-      let text = '';
-
-      for (const model of candidateModels) {
-        try {
-          const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiApiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{
-                parts: [
-                  { text: prompt },
-                  { inlineData: { mimeType: mimeType, data: base64Data } }
-                ]
-              }]
-            })
-          });
-
-          if (!response.ok) {
-            const errRes = await response.json().catch(() => ({}));
-            throw new Error(errRes.error?.message || `通信エラー (${response.status})`);
+      // Google Generative Language REST API の正確な仕様 (スネークケース inline_data)
+      const payload = {
+        contents: [
+          {
+            parts: [
+              { text: prompt },
+              {
+                inline_data: {
+                  mime_type: mimeType,
+                  data: base64Data
+                }
+              }
+            ]
           }
+        ]
+      };
 
-          const result = await response.json();
-          text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
-          if (text) break;
-        } catch (e) {
-          lastError = e;
-        }
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiApiKey}`;
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      if (!response.ok) {
+        const errRes = await response.json().catch(() => ({}));
+        throw new Error(errRes.error?.message || `通信エラー (${response.status})`);
       }
 
+      const result = await response.json();
+      let text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      
       if (!text) {
-        throw lastError || new Error('AIから応答を受信できませんでした');
+        throw new Error('AIから応答を受信できませんでした');
       }
 
-      // JSON文字列のクリーンアップ
+      // JSON文字列の抽出とクリーンアップ
       text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
       const jsonStart = text.indexOf('{');
       const jsonEnd = text.lastIndexOf('}');
@@ -1339,7 +1345,7 @@
       setTimeout(() => {
         toast.classList.remove('opacity-100', 'translate-y-0');
         toast.classList.add('opacity-0', '-translate-y-4');
-      }, 2500);
+      }, 3500);
     }
 
     function escapeHtml(str) {
