@@ -998,15 +998,63 @@
       showToast('エラーメッセージをコピーしました');
     }
 
-    // Google指定の gemini-3.8-flash を使用する関数
-    async function getBestGeminiModel(apiKey) {
-      // Googleから指定された最新の gemini-3.8-flash を返す
-      return 'gemini-3.8-flash';
+    // 混雑時（High Demand / 503）にも耐えられる候補モデルリスト
+    const GEMINI_MODELS = [
+      'gemini-3.8-flash',
+      'gemini-3.1-flash-lite',
+      'gemini-3.5-flash',
+      'gemini-3-flash-preview'
+    ];
+
+    // 自動リトライ＆予備モデル自動切り替え付き通信関数
+    async function callGeminiWithAutoFallback(payload, apiKey, onStatus) {
+      let lastErrMsg = '';
+
+      for (const model of GEMINI_MODELS) {
+        if (onStatus) onStatus(`モデル ${model} で通信中...`);
+
+        // 最大2回試行（混雑時は1.5秒待って自動再試行）
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          try {
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            const res = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              return { data, model };
+            }
+
+            const errData = await res.json().catch(() => ({}));
+            const errMsg = errData.error?.message || `HTTP ${res.status}`;
+            lastErrMsg = errMsg;
+
+            // 高負荷・混雑エラー（High Demand / 503 / 429）の場合は待機して再試行
+            const isHighDemand = errMsg.includes('high demand') || res.status === 503 || res.status === 429;
+            if (isHighDemand && attempt === 1) {
+              if (onStatus) onStatus(`混雑のため待機して再試行中 (${model})...`);
+              await new Promise(r => setTimeout(r, 1500));
+              continue;
+            }
+
+            // それ以外の理由や2回目失敗なら次の予備モデルへ
+            break;
+          } catch (netErr) {
+            lastErrMsg = netErr.message || '通信エラー';
+            break;
+          }
+        }
+      }
+
+      throw new Error(lastErrMsg || '現在Google AIサーバーが高負荷です。数秒後に再度お試しください。');
     }
 
     async function parseReceiptWithGemini(base64Data, mimeType = 'image/jpeg') {
       const cleanKey = geminiApiKey.trim();
-      const modelName = await getBestGeminiModel(cleanKey);
+      const statusText = document.getElementById('aiStatusText');
 
       const prompt = `このレシート画像から必要な情報を抽出し、必ず以下のキーを持つJSONオブジェクトのみを出力してください。マークダウンの装飾や前後の解説テキストは一切出力しないでください。
 {
@@ -1033,23 +1081,13 @@
         ]
       };
 
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${cleanKey}`;
+      const { data: result, model: usedModel } = await callGeminiWithAutoFallback(
+        payload,
+        cleanKey,
+        (msg) => { if (statusText) statusText.textContent = msg; }
+      );
 
-      const response = await fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      });
-
-      if (!response.ok) {
-        const errRes = await response.json().catch(() => ({}));
-        const detailedMsg = errRes.error?.message || `HTTPステータス: ${response.status}`;
-        throw new Error(detailedMsg);
-      }
-
-      const result = await response.json();
       let text = result.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      
       if (!text) {
         throw new Error('AIからテキスト応答を受信できませんでした');
       }
@@ -1075,7 +1113,7 @@
           }
         }
       }
-      showToast('レシートの読み取りが完了しました！');
+      showToast(`読み取り完了（${usedModel}）`);
     }
 
     function saveReceiptTransaction(e) {
@@ -1337,27 +1375,21 @@
       }
 
       resultEl.className = 'text-[11px] pt-1 font-medium text-blue-600 animate-pulse';
-      resultEl.textContent = 'Gemini 3.8 Flash に接続中...';
+      resultEl.textContent = 'Gemini AI サーバーへ接続テスト中...';
 
       try {
-        const modelName = 'gemini-3.8-flash';
         const testPayload = {
           contents: [{ parts: [{ text: 'Respond with OK' }] }]
         };
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${val}`;
-        const res = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(testPayload)
-        });
 
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.error?.message || `HTTP ${res.status}`);
-        }
+        const { model: usedModel } = await callGeminiWithAutoFallback(
+          testPayload,
+          val,
+          (msg) => { resultEl.textContent = msg; }
+        );
 
         resultEl.className = 'text-[11px] pt-1 font-medium text-emerald-600';
-        resultEl.textContent = `✅ 接続成功！利用モデル: ${modelName}`;
+        resultEl.textContent = `✅ 接続成功！利用モデル: ${usedModel}`;
         geminiApiKey = val;
         localStorage.setItem('pm_gemini_api_key', val);
       } catch (err) {
