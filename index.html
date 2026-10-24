@@ -998,39 +998,10 @@
       showToast('エラーメッセージをコピーしました');
     }
 
-    // Google AIの利用可能モデルを自動取得する関数
+    // Google指定の gemini-3.8-flash を使用する関数
     async function getBestGeminiModel(apiKey) {
-      try {
-        const listRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${apiKey}`);
-        if (listRes.ok) {
-          const data = await listRes.json();
-          const models = data.models || [];
-          
-          // generateContent をサポートし、flashが含まれるモデルを優先
-          const flashModels = models.filter(m => 
-            m.supportedGenerationMethods && 
-            m.supportedGenerationMethods.includes('generateContent') &&
-            m.name.includes('flash')
-          );
-          if (flashModels.length > 0) {
-            return flashModels[0].name.replace('models/', '');
-          }
-
-          // flashがなければgenerateContentをサポートする任意のgeminiモデル
-          const anyGemini = models.filter(m => 
-            m.supportedGenerationMethods && 
-            m.supportedGenerationMethods.includes('generateContent') &&
-            m.name.includes('gemini')
-          );
-          if (anyGemini.length > 0) {
-            return anyGemini[0].name.replace('models/', '');
-          }
-        }
-      } catch (e) {
-        console.warn('モデル自動一覧の取得に失敗:', e);
-      }
-      // 最新の安定版エイリアスへフォールバック
-      return 'gemini-flash-latest';
+      // Googleから指定された最新の gemini-3.8-flash を返す
+      return 'gemini-3.8-flash';
     }
 
     async function parseReceiptWithGemini(base64Data, mimeType = 'image/jpeg') {
@@ -1366,10 +1337,10 @@
       }
 
       resultEl.className = 'text-[11px] pt-1 font-medium text-blue-600 animate-pulse';
-      resultEl.textContent = '利用可能な最新モデルを検出中...';
+      resultEl.textContent = 'Gemini 3.8 Flash に接続中...';
 
       try {
-        const modelName = await getBestGeminiModel(val);
+        const modelName = 'gemini-3.8-flash';
         const testPayload = {
           contents: [{ parts: [{ text: 'Respond with OK' }] }]
         };
