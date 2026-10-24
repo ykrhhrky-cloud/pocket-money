@@ -132,51 +132,59 @@
           </div>
 
           <div class="flex items-center space-x-2 text-[11px] text-slate-400 font-semibold">
-            <button onclick="shiftMonth(-1)" class="p-0.5 hover:text-blue-600 active:scale-90 transition font-mono">◀</button>
+            <button onclick="animatedShiftMonth(-1)" class="p-0.5 hover:text-blue-600 active:scale-90 transition font-mono">◀</button>
             <span id="txCountBadge">0件の取引</span>
-            <button onclick="shiftMonth(1)" class="p-0.5 hover:text-blue-600 active:scale-90 transition font-mono">▶</button>
+            <button onclick="animatedShiftMonth(1)" class="p-0.5 hover:text-blue-600 active:scale-90 transition font-mono">▶</button>
           </div>
         </div>
 
-        <!-- ==================== サマリカード（上部固定・薄型左右配置・前期比表示） ==================== -->
-        <div id="swipeCardArea" class="flex-shrink-0 bg-gradient-to-b from-[#eef5ff] to-[#e4efff] rounded-3xl p-3.5 card-shadow border border-blue-200/70 relative select-none transition-transform duration-200 flex items-center justify-between">
-          
-          <!-- 左側：現在残高 ＆ 前期比（マイナスは赤字・黒三角） -->
-          <div class="flex-1 pr-2 min-w-0">
-            <span class="text-xs font-extrabold text-blue-900 tracking-tight block">現在残高</span>
+        <!-- ==================== サマリカード（当期残高・前期比・現在残高 ＆ ダイナミックスワイプ対応） ==================== -->
+        <div class="relative overflow-hidden rounded-3xl">
+          <div id="swipeCardArea" class="bg-gradient-to-b from-[#eef5ff] to-[#e4efff] rounded-3xl p-3.5 card-shadow border border-blue-200/70 relative select-none flex items-center justify-between will-change-transform">
             
-            <div class="flex items-baseline space-x-1 my-0.5">
-              <span class="text-lg font-bold font-mono text-blue-600">¥</span>
-              <span id="netTotal" class="text-2xl font-black font-mono text-slate-900 tracking-tight">0</span>
-            </div>
-
-            <!-- 前期比表示エリア -->
-            <div class="flex items-center space-x-1 mt-0.5">
-              <span id="diffVsPrevPeriod" class="text-[10px] font-bold text-slate-500 font-mono">（前期比 ±¥0）</span>
-            </div>
-          </div>
-
-          <!-- 右側：四角くまとめた収支ボックス -->
-          <div class="w-44 flex-shrink-0 flex flex-col space-y-1.5">
-            <!-- 上段: 収入・支出の2並び -->
-            <div class="grid grid-cols-2 gap-1.5">
-              <div class="bg-white/95 rounded-xl p-1.5 text-center shadow-xs border border-blue-100/60">
-                <span class="text-[9px] text-slate-400 font-bold block leading-none mb-1">期間中収入</span>
-                <span id="incomeTotal" class="text-[11px] font-black font-mono text-emerald-600 truncate block leading-tight">+¥0</span>
+            <!-- 左側：当期残高 ＆ 前期比 ＆ 現在残高 -->
+            <div class="flex-1 pr-2 min-w-0">
+              <span class="text-xs font-extrabold text-blue-900 tracking-tight block">当期残高</span>
+              
+              <div class="flex items-baseline space-x-1 my-0.5">
+                <span class="text-lg font-bold font-mono text-blue-600">¥</span>
+                <span id="periodNetTotal" class="text-2xl font-black font-mono text-slate-900 tracking-tight">0</span>
               </div>
-              <div class="bg-white/95 rounded-xl p-1.5 text-center shadow-xs border border-blue-100/60">
-                <span class="text-[9px] text-slate-400 font-bold block leading-none mb-1">期間中支出</span>
-                <span id="expenseTotal" class="text-[11px] font-black font-mono text-rose-500 truncate block leading-tight">-¥0</span>
+
+              <!-- 前期比表示エリア -->
+              <div class="flex items-center space-x-1 mt-0.5">
+                <span id="diffVsPrevPeriod" class="text-[10px] font-bold text-slate-500 font-mono">（前期比 ±¥0）</span>
+              </div>
+
+              <!-- 現在残高表示エリア（前期比の下） -->
+              <div class="flex items-center space-x-1 mt-1 text-[10px]">
+                <span class="font-bold text-slate-400">現在残高:</span>
+                <span id="currentOverallNet" class="font-black font-mono text-slate-700">¥0</span>
               </div>
             </div>
 
-            <!-- 下段: 期間中収支 -->
-            <div class="bg-white/95 rounded-xl py-1 px-2 text-center shadow-xs border border-blue-100/60 flex items-center justify-between">
-              <span class="text-[9px] text-slate-400 font-bold">期間中収支</span>
-              <span id="periodDiffTotal" class="text-[11px] font-black font-mono text-emerald-600">+¥0</span>
-            </div>
-          </div>
+            <!-- 右側：四角くまとめた収支ボックス -->
+            <div class="w-44 flex-shrink-0 flex flex-col space-y-1.5">
+              <!-- 上段: 収入・支出の2並び -->
+              <div class="grid grid-cols-2 gap-1.5">
+                <div class="bg-white/95 rounded-xl p-1.5 text-center shadow-xs border border-blue-100/60">
+                  <span class="text-[9px] text-slate-400 font-bold block leading-none mb-1">期間中収入</span>
+                  <span id="incomeTotal" class="text-[11px] font-black font-mono text-emerald-600 truncate block leading-tight">+¥0</span>
+                </div>
+                <div class="bg-white/95 rounded-xl p-1.5 text-center shadow-xs border border-blue-100/60">
+                  <span class="text-[9px] text-slate-400 font-bold block leading-none mb-1">期間中支出</span>
+                  <span id="expenseTotal" class="text-[11px] font-black font-mono text-rose-500 truncate block leading-tight">-¥0</span>
+                </div>
+              </div>
 
+              <!-- 下段: 期間中収支 -->
+              <div class="bg-white/95 rounded-xl py-1 px-2 text-center shadow-xs border border-blue-100/60 flex items-center justify-between">
+                <span class="text-[9px] text-slate-400 font-bold">期間中収支</span>
+                <span id="periodDiffTotal" class="text-[11px] font-black font-mono text-emerald-600">+¥0</span>
+              </div>
+            </div>
+
+          </div>
         </div>
 
         <!-- ==================== クイックアクションボタン ==================== -->
@@ -263,13 +271,13 @@
 
       <!-- ==================== TAB 2: 推移グラフ ==================== -->
       <section id="view-analytics" class="hidden flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-3">
-        <!-- 円グラフ -->
+        <!-- 円グラフ（内側に支出総額・凡例に金額表示） -->
         <div class="bg-white rounded-3xl p-4 card-shadow border border-slate-100">
           <div class="flex items-center justify-between mb-2">
             <h2 class="text-xs font-bold text-slate-900">科目別 支出内訳</h2>
             <span class="text-[10px] text-slate-400 font-semibold" id="pieChartPeriodLabel">当月</span>
           </div>
-          <div class="relative w-full h-44 flex items-center justify-center">
+          <div class="relative w-full h-52 flex items-center justify-center">
             <canvas id="pieChartCanvas"></canvas>
             <div id="pieEmptyState" class="hidden absolute inset-0 flex items-center justify-center text-xs text-slate-400">
               この期間の支出データはありません
@@ -428,11 +436,11 @@
         <div id="manualTitleGroup">
           <div class="flex items-center justify-between mb-1">
             <label class="block text-[11px] font-bold text-slate-600">内容 / 店舗名</label>
-            <span class="text-[10px] text-slate-400">過去の履歴から補完</span>
+            <span class="text-[10px] text-slate-400">よく使う店舗 (3回以上・最大10件)</span>
           </div>
           <input type="text" id="manualTitle" list="titleSuggestions" placeholder="例: セブンイレブン、昼食" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-2 text-xs font-semibold outline-none focus:border-blue-500">
           <datalist id="titleSuggestions"></datalist>
-          <div id="quickTitleChips" class="flex flex-wrap gap-1 mt-1.5 min-h-[22px]"></div>
+          <div id="quickTitleChips" class="flex flex-wrap gap-1 mt-1.5 max-h-[64px] overflow-y-auto no-scrollbar"></div>
         </div>
 
         <div>
@@ -464,7 +472,7 @@
       <div class="bg-slate-50 rounded-2xl p-3.5 space-y-2 text-xs">
         <div class="flex justify-between items-center py-1 border-b border-slate-200/60">
           <span class="text-slate-400 font-semibold">日付</span>
-          <span id="detailDate" class="font-bold text-slate-700">2026-10-25</span>
+          <span id="detailDate" class="font-bold text-slate-700">2026/10/25</span>
         </div>
         <div class="flex justify-between items-center py-1 border-b border-slate-200/60">
           <span class="text-slate-400 font-semibold">科目</span>
@@ -510,7 +518,7 @@
         </div>
         <div class="flex justify-between">
           <span class="text-slate-500">日付:</span>
-          <span id="dupDate" class="font-bold text-slate-800">2026-10-25</span>
+          <span id="dupDate" class="font-bold text-slate-800">2026/10/25</span>
         </div>
         <div class="flex justify-between">
           <span class="text-slate-500">金額:</span>
@@ -707,6 +715,7 @@
     let transactions = [];
     let recurringRules = [];
     let deletedTxIds = [];
+    let hiddenTitleSuggestions = [];
 
     let activeYear = new Date().getFullYear();
     let activeMonth = new Date().getMonth() + 1;
@@ -734,6 +743,7 @@
     let pendingDuplicateTx = null;
 
     let receiptAbortController = null;
+    let isCardAnimating = false;
 
     window.addEventListener('DOMContentLoaded', () => {
       loadStoredData();
@@ -770,6 +780,9 @@
         const delData = localStorage.getItem('pocket_deleted_tx_ids');
         if (delData) deletedTxIds = JSON.parse(delData);
 
+        const hiddenData = localStorage.getItem('pocket_hidden_title_suggestions');
+        if (hiddenData) hiddenTitleSuggestions = JSON.parse(hiddenData);
+
         geminiApiKey = localStorage.getItem('pocket_gemini_key') || '';
         gasEndpoint = localStorage.getItem('pocket_gas_url') || '';
 
@@ -785,6 +798,7 @@
         localStorage.setItem('pocket_tx_v2', JSON.stringify(transactions));
         localStorage.setItem('pocket_recurring_v2', JSON.stringify(recurringRules));
         localStorage.setItem('pocket_deleted_tx_ids', JSON.stringify(deletedTxIds));
+        localStorage.setItem('pocket_hidden_title_suggestions', JSON.stringify(hiddenTitleSuggestions));
       } catch (e) {
         console.error('Storage save failed:', e);
       }
@@ -941,7 +955,7 @@
 
       const customTextEl = document.getElementById('trendCustomBtnText');
       if (customTextEl) {
-        customTextEl.textContent = `${start.slice(5)}〜${end.slice(5)}`;
+        customTextEl.textContent = `${start.slice(5).replace('-', '/')}〜${end.slice(5).replace('-', '/')}`;
       }
 
       const sel = document.getElementById('trendYearSelect');
@@ -979,12 +993,13 @@
         text = `${currentTrendSelectedYear}年 (1年分)`;
       } else if (currentTrendPeriod === 'custom') {
         if (btnCustom) btnCustom.className = activeClass;
-        text = `${trendCustomDateRange.start} 〜 ${trendCustomDateRange.end}`;
+        text = `${trendCustomDateRange.start.replace(/-/g, '/')} 〜 ${trendCustomDateRange.end.replace(/-/g, '/')}`;
       }
 
       if (labelDisplay) labelDisplay.textContent = text;
     }
 
+    // ==================== サマリカードのダイナミックスワイプ ＆ スライドアニメーション ====================
     function setupSwipeGesture() {
       const card = document.getElementById('swipeCardArea');
       if (!card) return;
@@ -994,6 +1009,7 @@
       let diffX = 0;
 
       card.addEventListener('touchstart', (e) => {
+        if (isCardAnimating) return;
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
         diffX = 0;
@@ -1001,22 +1017,81 @@
       }, { passive: true });
 
       card.addEventListener('touchmove', (e) => {
+        if (isCardAnimating) return;
         diffX = e.touches[0].clientX - startX;
         const diffY = e.touches[0].clientY - startY;
+
+        // 横スクロールを優先検知
         if (Math.abs(diffX) > Math.abs(diffY)) {
-          card.style.transform = `translateX(${diffX * 0.35}px)`;
+          // 指に自然にダイレクト追従（最大±140px）
+          const clampedX = Math.max(-140, Math.min(140, diffX * 0.85));
+          card.style.transform = `translateX(${clampedX}px)`;
+          card.style.opacity = `${Math.max(0.7, 1 - Math.abs(clampedX) / 300)}`;
         }
       }, { passive: true });
 
       card.addEventListener('touchend', () => {
-        card.style.transition = 'transform 0.2s ease-out';
-        card.style.transform = 'translateX(0px)';
-        if (diffX > 50) {
-          shiftMonth(-1);
-        } else if (diffX < -50) {
-          shiftMonth(1);
+        if (isCardAnimating) return;
+        const threshold = 55; // 切り替え判定の距離
+
+        if (diffX > threshold) {
+          // 右スワイプ ＝ 前月へスライド
+          triggerCardSlideAnimation(-1);
+        } else if (diffX < -threshold) {
+          // 左スワイプ ＝ 翌月へスライド
+          triggerCardSlideAnimation(1);
+        } else {
+          // キャンセル：元の位置へバネのように戻る
+          card.style.transition = 'transform 0.24s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.24s ease-out';
+          card.style.transform = 'translateX(0px)';
+          card.style.opacity = '1';
         }
       });
+    }
+
+    // スライドアニメーション付きの月切り替え
+    function animatedShiftMonth(delta) {
+      if (isCardAnimating) return;
+      triggerCardSlideAnimation(delta);
+    }
+
+    function triggerCardSlideAnimation(delta) {
+      const card = document.getElementById('swipeCardArea');
+      if (!card) {
+        shiftMonth(delta);
+        return;
+      }
+
+      isCardAnimating = true;
+      const slideOutX = delta > 0 ? -180 : 180;
+      const slideInFromX = delta > 0 ? 180 : -180;
+
+      // 1. スッと外側へスライドアウト
+      card.style.transition = 'transform 0.16s ease-in, opacity 0.16s ease-in';
+      card.style.transform = `translateX(${slideOutX}px)`;
+      card.style.opacity = '0';
+
+      setTimeout(() => {
+        // 2. データを更新
+        shiftMonth(delta);
+
+        // 3. 反対側へ瞬時にワープして配置
+        card.style.transition = 'none';
+        card.style.transform = `translateX(${slideInFromX}px)`;
+        card.style.opacity = '0';
+
+        // 4. 中央へ滑らかにスライドイン
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            card.style.transition = 'transform 0.22s cubic-bezier(0.18, 0.89, 0.32, 1.15), opacity 0.22s ease-out';
+            card.style.transform = 'translateX(0px)';
+            card.style.opacity = '1';
+            setTimeout(() => {
+              isCardAnimating = false;
+            }, 240);
+          });
+        });
+      }, 160);
     }
 
     function togglePeriodDropdown() {
@@ -1105,7 +1180,7 @@
       } else if (currentFilterMode === 'this_year') {
         text = `${new Date().getFullYear()}年 (1年)`;
       } else if (currentFilterMode === 'custom') {
-        text = `${customDateRange.start.slice(5)}〜${customDateRange.end.slice(5)}`;
+        text = `${customDateRange.start.slice(5).replace('-', '/')}〜${customDateRange.end.slice(5).replace('-', '/')}`;
       }
 
       targetLabel.textContent = text;
@@ -1182,14 +1257,16 @@
       updatePeriodLabel();
       const filtered = getFilteredTransactions();
 
+      // 1. 全期間の総残高（財布の全残高＝現在残高）
       let totalIncome = 0;
       let totalExpense = 0;
       transactions.forEach(t => {
         if (t.type === 'income') totalIncome += Number(t.amount) || 0;
         else totalExpense += Number(t.amount) || 0;
       });
-      const netTotal = totalIncome - totalExpense;
+      const overallNet = totalIncome - totalExpense;
 
+      // 2. 選択中期間の収入・支出・収支
       let periodIncome = 0;
       let periodExpense = 0;
       filtered.forEach(t => {
@@ -1197,6 +1274,27 @@
         else periodExpense += Number(t.amount) || 0;
       });
       const periodDiff = periodIncome - periodExpense;
+
+      // 3. 当期残高（選択中期間の末日時点での累積残高）
+      let periodEndDate = null;
+      if (currentFilterMode === 'current_month' || currentFilterMode === 'prev_month' || currentFilterMode === 'month') {
+        const lastDay = new Date(activeYear, activeMonth, 0).getDate();
+        periodEndDate = `${activeYear}-${String(activeMonth).padStart(2, '0')}-${String(lastDay).padStart(2, '0')}`;
+      } else if (currentFilterMode === 'custom' && customDateRange.end) {
+        periodEndDate = customDateRange.end;
+      }
+
+      let periodNet = 0;
+      if (periodEndDate) {
+        transactions.forEach(t => {
+          if (t.date && t.date <= periodEndDate) {
+            if (t.type === 'income') periodNet += Number(t.amount) || 0;
+            else periodNet -= Number(t.amount) || 0;
+          }
+        });
+      } else {
+        periodNet = overallNet;
+      }
 
       document.getElementById('incomeTotal').textContent = `+¥${periodIncome.toLocaleString()}`;
       document.getElementById('expenseTotal').textContent = `-¥${periodExpense.toLocaleString()}`;
@@ -1210,14 +1308,28 @@
         periodDiffEl.className = 'text-[11px] font-black font-mono text-rose-500';
       }
 
-      const netEl = document.getElementById('netTotal');
-      netEl.textContent = netTotal.toLocaleString();
-      if (netTotal < 0) {
-        netEl.classList.add('text-rose-600');
-        netEl.classList.remove('text-slate-900');
-      } else {
-        netEl.classList.remove('text-rose-600');
-        netEl.classList.add('text-slate-900');
+      // サマリカードメイン数値：当期残高
+      const periodNetEl = document.getElementById('periodNetTotal');
+      if (periodNetEl) {
+        periodNetEl.textContent = periodNet.toLocaleString();
+        if (periodNet < 0) {
+          periodNetEl.classList.add('text-rose-600');
+          periodNetEl.classList.remove('text-slate-900');
+        } else {
+          periodNetEl.classList.remove('text-rose-600');
+          periodNetEl.classList.add('text-slate-900');
+        }
+      }
+
+      // 前期比の下：現在残高
+      const currentNetEl = document.getElementById('currentOverallNet');
+      if (currentNetEl) {
+        currentNetEl.textContent = `¥${overallNet.toLocaleString()}`;
+        if (overallNet < 0) {
+          currentNetEl.className = 'font-mono text-rose-600 font-black';
+        } else {
+          currentNetEl.className = 'font-mono text-slate-700 font-black';
+        }
       }
 
       calculateDiffVsPrevPeriod(periodDiff);
@@ -1288,6 +1400,9 @@
 
         const memoSub = t.memo ? `<span class="text-[10px] text-slate-400 truncate block max-w-[150px]">${escapeHtml(t.memo)}</span>` : '';
 
+        // 日付を "10/25" 形式に変換
+        const displayDate = t.date ? t.date.slice(5).replace('-', '/') : '';
+
         card.innerHTML = `
           <div class="flex items-center min-w-0 pr-2 space-x-2.5">
             ${checkboxHtml}
@@ -1297,7 +1412,7 @@
             <div class="min-w-0">
               <div class="flex items-center space-x-1.5">
                 <p class="text-xs font-bold text-slate-800 truncate">${escapeHtml(t.title || '未分類')}</p>
-                <span class="text-[10px] font-semibold text-slate-400">${t.date.slice(5)}</span>
+                <span class="text-[10px] font-semibold text-slate-400">${displayDate}</span>
               </div>
               <div class="flex items-center space-x-1.5 mt-0.5">
                 <span class="px-1.5 py-0.2 bg-white rounded border border-slate-200/60 text-[9px] font-bold text-slate-600">${escapeHtml(t.category)}</span>
@@ -1368,8 +1483,11 @@
         typeBadge.className = 'px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-rose-100 text-rose-800';
       }
 
+      // 詳細モーダルの日付は "2026/10/25" 形式
+      const detailDateFormatted = t.date ? t.date.replace(/-/g, '/') : '';
+
       document.getElementById('detailAmount').textContent = `¥${(Number(t.amount) || 0).toLocaleString()}`;
-      document.getElementById('detailDate').textContent = t.date || '';
+      document.getElementById('detailDate').textContent = detailDateFormatted;
       document.getElementById('detailCategory').textContent = t.category || 'その他';
       document.getElementById('detailTitle').textContent = t.title || '未分類';
       document.getElementById('detailMemo').textContent = t.memo || 'なし';
@@ -1478,6 +1596,7 @@
       updateTitleSuggestions();
     }
 
+    // ==================== 候補（サジェスト）と削除機能 ====================
     function updateTitleSuggestions() {
       const datalist = document.getElementById('titleSuggestions');
       const chipsContainer = document.getElementById('quickTitleChips');
@@ -1491,32 +1610,83 @@
       const freqMap = {};
       transactions.forEach(t => {
         if (t.type === 'expense' && t.title && t.title !== '支出' && t.title !== '未分類') {
-          freqMap[t.title] = (freqMap[t.title] || 0) + 1;
+          // 非表示リストに入っていないものだけ集計
+          if (!hiddenTitleSuggestions.includes(t.title)) {
+            freqMap[t.title] = (freqMap[t.title] || 0) + 1;
+          }
         }
       });
 
-      const sortedTitles = Object.keys(freqMap).sort((a, b) => freqMap[b] - freqMap[a]);
+      // 過去に3回以上出現したものだけに絞り込み、出現回数（利用頻度）の多い順にソート
+      const frequentTitles = Object.keys(freqMap)
+        .filter(title => freqMap[title] >= 3)
+        .sort((a, b) => freqMap[b] - freqMap[a]);
 
-      sortedTitles.forEach(title => {
+      // datalist にも登録（キーボード入力時の候補補完）
+      frequentTitles.forEach(title => {
         const opt = document.createElement('option');
         opt.value = title;
         datalist.appendChild(opt);
       });
 
-      sortedTitles.slice(0, 6).forEach(title => {
-        const chip = document.createElement('button');
-        chip.type = 'button';
-        chip.className = 'px-2 py-0.5 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-600 text-slate-600 text-[10px] font-bold border border-slate-200/60 active:scale-95 transition';
-        chip.textContent = title;
-        chip.onclick = () => {
+      // 最大10件までに制限してコンパクトに配置
+      const displayTitles = frequentTitles.slice(0, 10);
+
+      if (displayTitles.length === 0) {
+        chipsContainer.innerHTML = '<span class="text-[10px] text-slate-400 py-0.5">※3回以上登録したよく行く店舗がここに表示されます</span>';
+        return;
+      }
+
+      displayTitles.forEach(title => {
+        const count = freqMap[title];
+        const chipWrapper = document.createElement('div');
+        chipWrapper.className = 'inline-flex items-center bg-slate-100 hover:bg-slate-200/80 rounded-xl border border-slate-200/70 overflow-hidden text-[10px] font-bold shadow-2xs transition';
+
+        // タイトル選択ボタン（利用回数バッジ付き）
+        const textBtn = document.createElement('button');
+        textBtn.type = 'button';
+        textBtn.className = 'px-2 py-0.5 text-slate-700 hover:text-blue-600 active:scale-95 transition flex items-center space-x-1';
+        textBtn.innerHTML = `<span>${escapeHtml(title)}</span><span class="text-[9px] text-blue-500 font-mono">(${count})</span>`;
+        textBtn.onclick = () => {
           document.getElementById('manualTitle').value = title;
           const matchTx = transactions.find(t => t.title === title && t.category);
           if (matchTx) {
             document.getElementById('manualCategory').value = matchTx.category;
           }
         };
-        chipsContainer.appendChild(chip);
+
+        // 候補削除 (×) ボタン
+        const delBtn = document.createElement('button');
+        delBtn.type = 'button';
+        delBtn.className = 'px-1.5 py-0.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 border-l border-slate-200/60 leading-none transition';
+        delBtn.innerHTML = '&times;';
+        delBtn.title = '候補から非表示';
+        delBtn.onclick = (e) => {
+          e.stopPropagation();
+          removeTitleSuggestion(title);
+        };
+
+        chipWrapper.appendChild(textBtn);
+        chipWrapper.appendChild(delBtn);
+        chipsContainer.appendChild(chipWrapper);
       });
+    }
+
+    function removeTitleSuggestion(title) {
+      if (!hiddenTitleSuggestions.includes(title)) {
+        hiddenTitleSuggestions.push(title);
+        saveStoredData();
+      }
+      updateTitleSuggestions();
+      showToast(`「${title}」を候補から一時非表示にしました`);
+    }
+
+    // 再度入力・登録された時に除外を自動解除して復活させる関数
+    function unhideTitleSuggestion(title) {
+      if (title && hiddenTitleSuggestions.includes(title)) {
+        hiddenTitleSuggestions = hiddenTitleSuggestions.filter(t => t !== title);
+        saveStoredData();
+      }
     }
 
     function saveManualTransaction() {
@@ -1534,6 +1704,9 @@
       if (!title) {
         title = currentManualType === 'income' ? category : '支出';
       }
+
+      // 改めて入力・登録されたので、以前非表示にしていた場合も候補に自動復活！
+      unhideTitleSuggestion(title);
 
       if (editingTxId) {
         const target = transactions.find(t => t.id === editingTxId);
@@ -1567,6 +1740,43 @@
       refreshDashboard();
     }
 
+    // ==================== 画像の超高速リサイズ圧縮処理 (数秒短縮) ====================
+    async function compressAndResizeImage(file, maxDimension = 1280, quality = 0.8) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            let width = img.width;
+            let height = img.height;
+
+            if (width > maxDimension || height > maxDimension) {
+              if (width > height) {
+                height = Math.round((height * maxDimension) / width);
+                width = maxDimension;
+              } else {
+                width = Math.round((width * maxDimension) / height);
+                height = maxDimension;
+              }
+            }
+
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+            resolve(compressedBase64.split(',')[1]);
+          };
+          img.onerror = reject;
+          img.src = e.target.result;
+        };
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
     // ==================== レシート撮影＆Gemini AI解析 ====================
     async function handleReceiptUpload(event) {
       const file = event.target.files[0];
@@ -1582,8 +1792,8 @@
       receiptAbortController = new AbortController();
 
       try {
-        const base64Data = await fileToBase64(file);
-        const result = await analyzeReceiptWithGemini(base64Data, file.type || 'image/jpeg', receiptAbortController.signal);
+        const base64Data = await compressAndResizeImage(file);
+        const result = await analyzeReceiptWithGemini(base64Data, 'image/jpeg', receiptAbortController.signal);
 
         const newTx = {
           id: `tx_${Date.now()}_${Math.random().toString(36).substr(2, 5)}`,
@@ -1608,10 +1818,12 @@
         if (isDuplicate) {
           pendingDuplicateTx = newTx;
           document.getElementById('dupStoreName').textContent = isDuplicate.title;
-          document.getElementById('dupDate').textContent = isDuplicate.date;
+          document.getElementById('dupDate').textContent = isDuplicate.date ? isDuplicate.date.replace(/-/g, '/') : '';
           document.getElementById('dupAmount').textContent = `¥${Number(isDuplicate.amount).toLocaleString()}`;
           openModal('duplicateReceiptModal');
         } else {
+          // レシートから新しく登録された店名も自動で除外解除
+          unhideTitleSuggestion(newTx.title);
           transactions.unshift(newTx);
           saveStoredData();
           refreshDashboard();
@@ -1649,6 +1861,7 @@
 
     function forceSaveDuplicateReceipt() {
       if (pendingDuplicateTx) {
+        unhideTitleSuggestion(pendingDuplicateTx.title);
         transactions.unshift(pendingDuplicateTx);
         saveStoredData();
         refreshDashboard();
@@ -1658,20 +1871,8 @@
       closeModal('duplicateReceiptModal');
     }
 
-    function fileToBase64(file) {
-      return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          const res = reader.result;
-          resolve(res.split(',')[1]);
-        };
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-    }
-
     async function analyzeReceiptWithGemini(base64Image, mimeType, abortSignal) {
-      const models = ['gemini-3.8-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+      const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash', 'gemini-2.5-flash'];
       let lastError = null;
 
       const promptText = `あなたは高精度な日本のレシート解析アシスタントです。
@@ -1737,7 +1938,7 @@
           if (err.name === 'AbortError') throw err;
           lastError = err;
           if (err.message.includes('high demand') || err.message.includes('503')) {
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 800));
           }
         }
       }
@@ -1785,7 +1986,6 @@
       }
       if (!pieCanvas) return;
 
-      // 推移グラフの選択期間に合わせて円グラフの支出も抽出
       let filtered = transactions.filter(t => t.type === 'expense' && t.date);
 
       if (currentTrendPeriod === '6m') {
@@ -1800,22 +2000,29 @@
         filtered = filtered.filter(t => t.date.startsWith(`${currentTrendSelectedYear}-`));
       } else if (currentTrendPeriod === 'custom' && trendCustomDateRange.start && trendCustomDateRange.end) {
         filtered = filtered.filter(t => t.date >= trendCustomDateRange.start && t.date <= trendCustomDateRange.end);
-      } // 'all' は全データをそのまま集計
+      }
 
       const catMap = {};
       filtered.forEach(t => {
         catMap[t.category] = (catMap[t.category] || 0) + (Number(t.amount) || 0);
       });
 
-      const labels = Object.keys(catMap);
+      const rawLabels = Object.keys(catMap);
       const data = Object.values(catMap);
+      const totalExpense = data.reduce((sum, val) => sum + val, 0);
+
+      const legendLabels = rawLabels.map(cat => {
+        const icon = categoryIcons[cat] || '🏷️';
+        const amt = catMap[cat] || 0;
+        return `${icon} ${cat}: ¥${amt.toLocaleString()}`;
+      });
 
       if (pieChartInstance) {
         pieChartInstance.destroy();
         pieChartInstance = null;
       }
 
-      if (labels.length === 0) {
+      if (rawLabels.length === 0) {
         if (emptyState) emptyState.classList.remove('hidden');
         return;
       }
@@ -1823,27 +2030,66 @@
 
       const palette = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#6366F1', '#14B8A6', '#64748B'];
 
+      const centerTotalPlugin = {
+        id: 'centerTotalPlugin',
+        beforeDraw(chart) {
+          const { ctx, chartArea } = chart;
+          if (!chartArea) return;
+          const centerX = (chartArea.left + chartArea.right) / 2;
+          const centerY = (chartArea.top + chartArea.bottom) / 2;
+
+          ctx.save();
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+
+          ctx.font = 'bold 9px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          ctx.fillStyle = '#94a3b8';
+          ctx.fillText('支出総額', centerX, centerY - 9);
+
+          ctx.font = '900 14px monospace';
+          ctx.fillStyle = '#1e293b';
+          ctx.fillText(`¥${totalExpense.toLocaleString()}`, centerX, centerY + 8);
+
+          ctx.restore();
+        }
+      };
+
       pieChartInstance = new Chart(pieCanvas.getContext('2d'), {
         type: 'doughnut',
         data: {
-          labels: labels,
+          labels: legendLabels,
           datasets: [{
             data: data,
-            backgroundColor: palette.slice(0, labels.length),
+            backgroundColor: palette.slice(0, rawLabels.length),
             borderWidth: 2,
             borderColor: '#FFFFFF'
           }]
         },
+        plugins: [centerTotalPlugin],
         options: {
           responsive: true,
           maintainAspectRatio: false,
           plugins: {
             legend: {
               position: 'bottom',
-              labels: { boxWidth: 10, padding: 8, font: { size: 10 } }
+              labels: { 
+                boxWidth: 10, 
+                padding: 7, 
+                font: { size: 10, weight: 'bold' },
+                color: '#475569'
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  const val = ctx.parsed || 0;
+                  const pct = totalExpense > 0 ? Math.round((val / totalExpense) * 100) : 0;
+                  return ` ¥${val.toLocaleString()} (${pct}%)`;
+                }
+              }
             }
           },
-          cutout: '65%'
+          cutout: '66%'
         }
       });
     }
@@ -1882,7 +2128,6 @@
           labels.push(`${m}月`);
         }
       } else if (currentTrendPeriod === 'all') {
-        // 全取引から最古年月〜最新年月を網羅
         let allDates = transactions.map(t => t.date).filter(Boolean).sort();
         if (allDates.length === 0) {
           allDates = [getTodayString()];
@@ -1906,7 +2151,6 @@
         const diffDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
 
         if (diffDays <= 45) {
-          // 45日以内なら「日別」グラフで詳細表示
           isDaily = true;
           let cur = new Date(s);
           while (cur <= e) {
@@ -1918,7 +2162,6 @@
             cur.setDate(cur.getDate() + 1);
           }
         } else {
-          // 45日を超える場合は「月別」グラフ
           let cur = new Date(s.getFullYear(), s.getMonth(), 1);
           const endMonth = new Date(e.getFullYear(), e.getMonth(), 1);
           while (cur <= endMonth) {
@@ -2270,7 +2513,7 @@
       statusEl.textContent = 'Google AIに接続テスト中...';
 
       try {
-        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${key}`, {
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${key}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ contents: [{ parts: [{ text: "ping" }] }] })
@@ -2282,7 +2525,7 @@
         }
 
         statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-emerald-50 text-emerald-700 font-bold block';
-        statusEl.textContent = '✅ 接続成功！利用モデル: gemini-3.8-flash';
+        statusEl.textContent = '✅ 接続成功！利用モデル: gemini-3.5-flash-lite (超高速)';
       } catch (err) {
         statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-rose-50 text-rose-700 font-bold block';
         statusEl.textContent = `❌ エラー: ${err.message}`;
@@ -2303,6 +2546,7 @@
         transactions = [];
         recurringRules = [];
         deletedTxIds = [];
+        hiddenTitleSuggestions = [];
         closeModal('deleteConfirmModal');
         closeModal('settingsModal');
         refreshDashboard();
