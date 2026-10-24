@@ -8,8 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
-      padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
       -webkit-tap-highlight-color: transparent;
       user-select: none;
       background-color: #f8faff;
@@ -23,6 +21,24 @@
     .no-scrollbar {
       -ms-overflow-style: none;
       scrollbar-width: none;
+    }
+    /* 上品で控えめなカスタムスクロールバー */
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.45);
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.65);
+    }
+    .custom-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
     }
     .card-shadow {
       box-shadow: 0 4px 20px -2px rgba(59, 130, 246, 0.08), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
@@ -51,8 +67,8 @@
   <!-- ==================== メインコンテナ ==================== -->
   <div class="flex-1 flex flex-col w-full max-w-md mx-auto bg-[#f8faff] h-full overflow-hidden relative shadow-2xl">
 
-    <!-- ==================== ヘッダー ==================== -->
-    <header class="flex-shrink-0 px-4 pt-3 pb-2.5 bg-white/80 backdrop-blur-md border-b border-blue-50/80 flex items-center justify-between z-20">
+    <!-- ==================== ヘッダー（スマホの時計・電波アイコンとの重なりを防止） ==================== -->
+    <header style="padding-top: max(env(safe-area-inset-top), 18px);" class="flex-shrink-0 px-4 pb-2.5 bg-white/85 backdrop-blur-md border-b border-blue-50/80 flex items-center justify-between z-20">
       <div class="flex items-center space-x-2.5">
         <div class="w-9 h-9 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-black text-base shadow-md shadow-blue-500/25">
           ¥
@@ -83,7 +99,7 @@
       <!-- ==================== TAB 1: ホーム ==================== -->
       <section id="view-home" class="flex-1 flex flex-col min-h-0 space-y-2.5 overflow-hidden">
 
-        <!-- 対象期間バー（期間選択メニュー ＆ 直近6ヶ月追加 ＆ 当月に戻るボタン） -->
+        <!-- 対象期間バー（期間選択メニュー ＆ 直近6ヶ月 ＆ 当月に戻るボタン） -->
         <div class="flex-shrink-0 flex items-center justify-between px-1 text-xs">
           <div class="flex items-center space-x-2">
             <div class="relative">
@@ -93,7 +109,7 @@
                 <svg class="w-3.5 h-3.5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/></svg>
               </button>
 
-              <!-- 期間プルダウンメニュー（直近6ヶ月を追加） -->
+              <!-- 期間プルダウンメニュー -->
               <div id="periodDropdownMenu" class="hidden absolute left-0 top-full mt-1.5 w-48 bg-white text-slate-800 rounded-2xl shadow-xl py-1.5 z-40 border border-slate-100 text-xs font-semibold">
                 <button type="button" onclick="selectPeriodMode('current_month')" class="w-full text-left px-3.5 py-2 hover:bg-slate-50 flex items-center justify-between">
                   <span>今月 (当月)</span>
@@ -122,7 +138,7 @@
           </div>
         </div>
 
-        <!-- ==================== サマリカード（薄型化・左右配置＆前期比表示・実質残金削除） ==================== -->
+        <!-- ==================== サマリカード（上部固定・薄型左右配置・前期比表示） ==================== -->
         <div id="swipeCardArea" class="flex-shrink-0 bg-gradient-to-b from-[#eef5ff] to-[#e4efff] rounded-3xl p-3.5 card-shadow border border-blue-200/70 relative select-none transition-transform duration-200 flex items-center justify-between">
           
           <!-- 左側：現在残高 ＆ 前期比（マイナスは赤字・黒三角） -->
@@ -140,7 +156,7 @@
             </div>
           </div>
 
-          <!-- 右側：四角くまとめた収支ボックス（左上: 期間中収入 / 右上: 期間中支出 / 下: 期間中収支） -->
+          <!-- 右側：四角くまとめた収支ボックス -->
           <div class="w-44 flex-shrink-0 flex flex-col space-y-1.5">
             <!-- 上段: 収入・支出の2並び -->
             <div class="grid grid-cols-2 gap-1.5">
@@ -177,7 +193,7 @@
           </button>
         </div>
 
-        <!-- ==================== 収支の明細リスト（複数科目絞り込み対応） ==================== -->
+        <!-- ==================== 収支の明細リスト（独立スクロール ＆ スタイリッシュスクロールバー） ==================== -->
         <div class="flex-1 min-h-0 bg-white rounded-3xl p-3.5 card-shadow border border-slate-100 flex flex-col overflow-hidden">
           
           <!-- リストヘッダー -->
@@ -193,7 +209,7 @@
                 <option value="amount_asc">金額が安い順</option>
               </select>
 
-              <!-- ★ 複数科目絞り込みトリガーボタン -->
+              <!-- 複数科目絞り込みトリガーボタン -->
               <div class="relative">
                 <button type="button" onclick="toggleCategoryFilterMenu()" id="btnCategoryFilterTrigger" class="bg-slate-100 text-slate-700 rounded-xl px-2 py-1 text-[11px] font-bold flex items-center space-x-1 border border-slate-200/50 active:scale-95 transition">
                   <span id="selectedCategoryLabel" class="max-w-[75px] truncate">全科目</span>
@@ -231,8 +247,8 @@
             </div>
           </div>
 
-          <!-- 明細カードリスト -->
-          <div id="transactionList" class="flex-1 overflow-y-auto no-scrollbar pt-2.5 space-y-2"></div>
+          <!-- 明細カードリスト（カスタムスクロールバー適用 ＆ 右パディング確保） -->
+          <div id="transactionList" class="flex-1 overflow-y-auto custom-scrollbar pt-2.5 pr-1.5 space-y-2"></div>
 
           <!-- 空表示 -->
           <div id="emptyListState" class="hidden flex-1 flex flex-col items-center justify-center text-center p-6 text-slate-400">
@@ -245,8 +261,8 @@
 
       </section>
 
-      <!-- ==================== TAB 2: 推移グラフ（年単位集計 ＆ 収支/収入/支出） ==================== -->
-      <section id="view-analytics" class="hidden flex-1 overflow-y-auto no-scrollbar space-y-3">
+      <!-- ==================== TAB 2: 推移グラフ ==================== -->
+      <section id="view-analytics" class="hidden flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-3">
         <!-- 円グラフ -->
         <div class="bg-white rounded-3xl p-4 card-shadow border border-slate-100">
           <div class="flex items-center justify-between mb-2">
@@ -261,31 +277,27 @@
           </div>
         </div>
 
-        <!-- 月別推移グラフ（年単位選択対応） -->
+        <!-- 月別推移グラフ -->
         <div class="bg-white rounded-3xl p-4 card-shadow border border-slate-100 space-y-3">
           
-          <!-- 上段: タイトル ＆ 期間切替（6ヶ月 / 12ヶ月 / 年選択プルダウン） -->
           <div class="flex items-center justify-between">
             <div>
               <h2 class="text-xs font-bold text-slate-900">月別推移グラフ</h2>
               <span class="text-[10px] text-slate-400" id="trendSubtitle">純収支（黒字は上、赤字は下）</span>
             </div>
             
-            <!-- 期間切替ボタングループ ＆ 年選択プルダウン -->
             <div class="flex items-center space-x-1.5">
               <div class="inline-flex p-0.5 bg-slate-100 rounded-xl text-[10px] font-bold">
                 <button type="button" onclick="setAnalyticsTrendPeriod('6m')" id="btnTrendPeriod6m" class="px-2 py-0.5 rounded-lg bg-white text-blue-600 shadow-xs transition">6ヶ月</button>
                 <button type="button" onclick="setAnalyticsTrendPeriod('12m')" id="btnTrendPeriod12m" class="px-2 py-0.5 rounded-lg text-slate-600 transition">12ヶ月</button>
               </div>
 
-              <!-- ★ 年単位選択プルダウン（2026年、2025年...） -->
               <select id="trendYearSelect" onchange="setAnalyticsTrendYear(this.value)" class="bg-slate-100 text-slate-700 rounded-xl px-2 py-0.5 text-[10px] font-bold outline-none border border-slate-200/50">
                 <!-- JSで動的生成 -->
               </select>
             </div>
           </div>
 
-          <!-- 中段: 表示モード切替 -->
           <div class="flex items-center space-x-1.5 p-1 bg-slate-50 rounded-2xl border border-slate-100 text-[11px] font-bold">
             <button type="button" onclick="setAnalyticsGraphMode('diff')" id="btnGraphModeDiff" class="flex-1 py-1 rounded-xl bg-white text-blue-600 shadow-xs transition text-center">
               純収支 (差額)
@@ -298,7 +310,6 @@
             </button>
           </div>
           
-          <!-- 下段: グラフCanvas -->
           <div class="relative w-full h-52">
             <canvas id="trendChartCanvas"></canvas>
             <div id="trendEmptyState" class="hidden absolute inset-0 flex items-center justify-center text-xs text-slate-400">
@@ -309,7 +320,7 @@
       </section>
 
       <!-- ==================== TAB 3: 定期収支 ==================== -->
-      <section id="view-recurring" class="hidden flex-1 overflow-y-auto no-scrollbar space-y-3">
+      <section id="view-recurring" class="hidden flex-1 overflow-y-auto custom-scrollbar pr-1 space-y-3">
         <div class="bg-white rounded-3xl p-4 card-shadow border border-slate-100">
           <div class="flex items-center justify-between mb-3">
             <div>
@@ -438,7 +449,7 @@
       <div class="bg-slate-50 rounded-2xl p-3.5 space-y-2 text-xs">
         <div class="flex justify-between items-center py-1 border-b border-slate-200/60">
           <span class="text-slate-400 font-semibold">日付</span>
-          <span id="detailDate" class="font-bold text-slate-700">2026-10-24</span>
+          <span id="detailDate" class="font-bold text-slate-700">2026-10-25</span>
         </div>
         <div class="flex justify-between items-center py-1 border-b border-slate-200/60">
           <span class="text-slate-400 font-semibold">科目</span>
@@ -484,7 +495,7 @@
         </div>
         <div class="flex justify-between">
           <span class="text-slate-500">日付:</span>
-          <span id="dupDate" class="font-bold text-slate-800">2026-10-24</span>
+          <span id="dupDate" class="font-bold text-slate-800">2026-10-25</span>
         </div>
         <div class="flex justify-between">
           <span class="text-slate-500">金額:</span>
@@ -612,7 +623,7 @@
     </div>
   </div>
 
-  <!-- ★ レシート解析オーバーレイ（通信中断＆手入力切り替えボタン新設） -->
+  <!-- レシート解析オーバーレイ（通信中断＆手入力切り替えボタン） -->
   <div id="receiptLoadingOverlay" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-white text-center">
     <div class="w-13 h-13 rounded-3xl bg-white/10 flex items-center justify-center mb-3">
       <svg class="w-6 h-6 text-white animate-spin-custom" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
@@ -620,7 +631,6 @@
     <h3 class="text-sm font-bold tracking-wide">レシートをAI解析中...</h3>
     <p class="text-xs text-slate-300 mt-1">店名・日付・金額・科目を読み取っています</p>
 
-    <!-- ★ 通信待機をスキップして手入力に切り替えるボタン -->
     <div class="mt-6 w-full max-w-xs space-y-2">
       <button type="button" onclick="abortReceiptAndOpenManual()" class="w-full py-2.5 px-4 rounded-2xl bg-white/20 hover:bg-white/30 text-white text-xs font-bold backdrop-blur-md border border-white/20 active:scale-95 transition flex items-center justify-center space-x-1.5 shadow-sm">
         <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.3" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
@@ -637,11 +647,9 @@
 
   <!-- ==================== JavaScript ロジック ==================== -->
   <script>
-    // ★ 科目の刷新：「外食」追加、「自己投資」→「習い事・ジム」に変更
     const expenseCategories = ['食費', '外食', '日用品', '嗜好品', '趣味・娯楽', '交通費', '交際費', '習い事・ジム', 'その他'];
     const incomeCategories = ['お小遣い', '臨時収入', 'その他'];
 
-    // アイコン絵文字マッピング
     const categoryIcons = {
       'お小遣い': '👛',
       '臨時収入': '🪙',
@@ -665,13 +673,11 @@
     let currentFilterMode = 'current_month';
     let customDateRange = { start: '', end: '' };
     
-    // ★ 複数科目絞り込み用ステート（Set）
-    let selectedCategoriesFilter = new Set(); // 空なら全科目
+    let selectedCategoriesFilter = new Set();
     
-    // 推移グラフ用ステート（年単位集計対応）
-    let currentTrendPeriod = '6m';      // '6m', '12m', 'year'
+    let currentTrendPeriod = '6m';
     let currentTrendSelectedYear = new Date().getFullYear();
-    let currentTrendGraphMode = 'diff';  // 'diff'(純収支), 'both'(収入&支出), 'expense'(支出のみ)
+    let currentTrendGraphMode = 'diff';
 
     let currentManualType = 'expense';
     let editingTxId = null;
@@ -685,7 +691,6 @@
     let selectedTxIds = new Set();
     let pendingDuplicateTx = null;
 
-    // ★ レシート通信中断用コントローラー
     let receiptAbortController = null;
 
     window.addEventListener('DOMContentLoaded', () => {
@@ -796,7 +801,6 @@
       const allCats = [...expenseCategories, ...incomeCategories.filter(c => !expenseCategories.includes(c))];
 
       if (selectedCategoriesFilter.size === 0) {
-        // 現在「全科目」状態から個別チェックを外した場合
         allCats.forEach(c => selectedCategoriesFilter.add(c));
       }
 
@@ -806,7 +810,6 @@
         selectedCategoriesFilter.delete(cat);
       }
 
-      // 全部チェック、または全解除されたらリセット（全科目）
       if (selectedCategoriesFilter.size === allCats.length || selectedCategoriesFilter.size === 0) {
         selectedCategoriesFilter.clear();
       }
@@ -836,7 +839,7 @@
       }
     }
 
-    // ==================== 年単位選択プルダウン（推移グラフ） ====================
+    // ==================== 年単位選択プルダウン ====================
     function setupTrendYearDropdown() {
       const sel = document.getElementById('trendYearSelect');
       if (!sel) return;
@@ -844,7 +847,6 @@
       sel.innerHTML = '';
       const currentYear = new Date().getFullYear();
       
-      // 過去3年〜当年
       for (let y = currentYear; y >= currentYear - 3; y--) {
         const opt = document.createElement('option');
         opt.value = y;
@@ -858,7 +860,6 @@
       currentTrendSelectedYear = Number(year);
       currentTrendPeriod = 'year';
 
-      // ボタンの見た目調整
       const btn6m = document.getElementById('btnTrendPeriod6m');
       const btn12m = document.getElementById('btnTrendPeriod12m');
       if (btn6m) btn6m.className = 'px-2 py-0.5 rounded-lg text-slate-600 transition';
@@ -1034,14 +1035,12 @@
       });
     }
 
-    // ★ 前期（前月など対応期間）の収支を計算して差分を算出
     function calculateDiffVsPrevPeriod(currentPeriodDiff) {
       let prevPeriodIncome = 0;
       let prevPeriodExpense = 0;
       let hasPrevData = false;
 
       if (currentFilterMode === 'current_month' || currentFilterMode === 'prev_month' || currentFilterMode === 'month') {
-        // 前月を特定
         const prevDate = new Date(activeYear, activeMonth - 2, 1);
         const prevPrefix = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
         
@@ -1069,7 +1068,6 @@
         diffEl.textContent = `（前期比 +¥${diff.toLocaleString()}）`;
         diffEl.className = 'text-[10px] font-black text-emerald-600 font-mono';
       } else if (diff < 0) {
-        // ★ マイナスのときは赤字 ＆ 黒三角をつける
         diffEl.textContent = `（前期比 ▼¥${Math.abs(diff).toLocaleString()}）`;
         diffEl.className = 'text-[10px] font-black text-rose-500 font-mono';
       } else {
@@ -1082,7 +1080,6 @@
       updatePeriodLabel();
       const filtered = getFilteredTransactions();
 
-      // 1. 全期間の累計現在残高
       let totalIncome = 0;
       let totalExpense = 0;
       transactions.forEach(t => {
@@ -1091,7 +1088,6 @@
       });
       const netTotal = totalIncome - totalExpense;
 
-      // 2. 選択期間中の収入・支出・収支
       let periodIncome = 0;
       let periodExpense = 0;
       filtered.forEach(t => {
@@ -1100,7 +1096,6 @@
       });
       const periodDiff = periodIncome - periodExpense;
 
-      // DOM反映
       document.getElementById('incomeTotal').textContent = `+¥${periodIncome.toLocaleString()}`;
       document.getElementById('expenseTotal').textContent = `-¥${periodExpense.toLocaleString()}`;
       
@@ -1123,9 +1118,7 @@
         netEl.classList.add('text-slate-900');
       }
 
-      // 前期比の計算
       calculateDiffVsPrevPeriod(periodDiff);
-
       document.getElementById('txCountBadge').textContent = `${filtered.length}件の取引`;
 
       renderTransactionsList(filtered);
@@ -1138,7 +1131,6 @@
       const emptyEl = document.getElementById('emptyListState');
       const sortOrderVal = document.getElementById('sortOrder') ? document.getElementById('sortOrder').value : 'date_desc';
 
-      // ★ 複数科目絞り込みフィルター適用
       if (selectedCategoriesFilter.size > 0) {
         filtered = filtered.filter(t => selectedCategoriesFilter.has(t.category));
       }
@@ -1264,7 +1256,6 @@
       if (badge) badge.textContent = `${selectedTxIds.size}件選択`;
     }
 
-    // ==================== 明細詳細モーダル（編集・削除） ====================
     function openTransactionDetailModal(t) {
       const typeBadge = document.getElementById('detailTypeBadge');
       if (t.type === 'income') {
@@ -1342,7 +1333,6 @@
       openModal('deleteConfirmModal');
     }
 
-    // ==================== 手入力・編集の保存 ＆ 履歴サジェスト ====================
     function openManualModal(type = 'expense') {
       editingTxId = null;
       setManualType(type);
@@ -1475,7 +1465,7 @@
       refreshDashboard();
     }
 
-    // ==================== レシート撮影＆Gemini AI解析 ＆ 中断機能 ====================
+    // ==================== レシート撮影＆Gemini AI解析 ====================
     async function handleReceiptUpload(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -1504,7 +1494,6 @@
           createdAt: new Date().toLocaleString('ja-JP')
         };
 
-        // 重複チェック
         const isDuplicate = transactions.find(t => {
           if (t.type !== 'expense') return false;
           if (t.date !== newTx.date) return false;
@@ -1540,7 +1529,6 @@
       }
     }
 
-    // ★ 読み取り待機を途中で中断し、手入力画面を開く
     function abortReceiptAndOpenManual() {
       if (receiptAbortController) {
         receiptAbortController.abort();
@@ -1655,7 +1643,7 @@
       throw lastError || new Error('レシート解析に失敗しました');
     }
 
-    // ==================== 分析・推移グラフ（年単位集計対応） ====================
+    // ==================== 分析・推移グラフ ====================
     function setAnalyticsGraphMode(mode) {
       currentTrendGraphMode = mode;
       
@@ -1755,7 +1743,6 @@
       const monthKeys = [];
       const monthLabels = [];
 
-      // ★ 期間の月キー生成（6ヶ月 / 12ヶ月 / 年単位）
       if (currentTrendPeriod === '6m') {
         for (let i = 5; i >= 0; i--) {
           const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
@@ -1773,7 +1760,6 @@
           monthLabels.push(`${d.getMonth() + 1}月`);
         }
       } else if (currentTrendPeriod === 'year') {
-        // 選択された指定年（2026年、2025年など）の1月〜12月
         const y = currentTrendSelectedYear;
         for (let m = 1; m <= 12; m++) {
           const mStr = String(m).padStart(2, '0');
