@@ -154,8 +154,8 @@
         <div class="min-w-0">
           <div class="flex items-center space-x-1.5 whitespace-nowrap">
             <h1 class="text-sm font-extrabold tracking-tight text-slate-800 leading-none whitespace-nowrap">スマートお小遣い帳</h1>
-            <!-- バージョン表示 (v1.28) -->
-            <span class="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200/80 shadow-2xs whitespace-nowrap">v1.28</span>
+            <!-- バージョン表示 (v1.29) -->
+            <span class="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200/80 shadow-2xs whitespace-nowrap">v1.29</span>
           </div>
           <span id="headerPeriodSub" class="text-[10px] font-bold text-blue-600 block mt-0.5 leading-none">当月</span>
         </div>
@@ -2949,8 +2949,8 @@
         throw new Error('Gemini APIキーが未設定です。設定から入力してください');
       }
 
-      // 混雑時にも自動回避できるよう、安定した最新モデル群を順にフォールバック
-      const models = ['gemini-3.8-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
+      // 最新の高速モデルに一本化（旧モデルを完全撤廃）
+      const models = ['gemini-3.8-flash'];
       let lastError = null;
       let lastErrorRaw = '';
 
@@ -3170,16 +3170,16 @@
       if (testBtn) testBtn.disabled = true;
       if (testBtnText) testBtnText.textContent = '確認中...';
       statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-blue-50 text-blue-700 font-bold block leading-relaxed';
-      statusEl.textContent = '接続テスト中 (各モデル2.5秒以内で応答確認)...';
+      statusEl.textContent = '接続テスト中 (最大7秒で応答確認)...';
 
-      const candidateModels = ['gemini-3.8-flash', 'gemini-2.0-flash', 'gemini-1.5-flash'];
+      const candidateModels = ['gemini-3.8-flash'];
       let connectedModel = null;
       let lastErrMsg = '';
 
       for (const m of candidateModels) {
         statusEl.textContent = `[${m}] への応答を確認中...`;
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2500); // 1モデルあたり最大2.5秒で即座に打ち切り
+        const timeoutId = setTimeout(() => controller.abort(), 7000); // 最大7秒まで待機してタイムアウト
 
         try {
           const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${key}`;
@@ -3208,7 +3208,7 @@
         } catch (e) {
           clearTimeout(timeoutId);
           if (e.name === 'AbortError') {
-            lastErrMsg = `${m} の応答が2.5秒を超えたためタイムアウトしました (サーバー高負荷)`;
+            lastErrMsg = `${m} の応答が7秒を超えたためタイムアウトしました (サーバー高負荷)`;
           } else {
             lastErrMsg = e.message || String(e);
           }
@@ -3224,12 +3224,14 @@
         statusEl.textContent = `接続成功！${connectedModel} 稼働中\n（高速レシート解析が利用可能です）`;
       } else {
         let friendlyMsg = '【接続エラー】通信に失敗しました。';
-        if (lastErrMsg.includes('high demand') || lastErrMsg.includes('503') || lastErrMsg.includes('タイムアウト') || lastErrMsg.includes('AbortError')) {
-          friendlyMsg = '【Google側の一時的な混雑・応答遅延】\n現在Google側のサーバーが高負荷のため応答に時間がかかっています。少し時間をおいて再度お試しください。';
+        if (lastErrMsg.includes('high demand') || lastErrMsg.includes('503') || lastErrMsg.includes('タイムアウト') || lastErrMsg.includes('AbortError') || lastErrMsg.includes('overloaded')) {
+          friendlyMsg = '【Googleサーバー混雑中】\nアクセスが集中しています。数十秒ほど待ってから再度お試しください。';
         } else if (lastErrMsg.includes('API_KEY_INVALID') || lastErrMsg.includes('API key not valid')) {
           friendlyMsg = '【APIキーが無効です】\n入力されたGemini APIキーが間違っているか、無効になっています。Google AI Studioから正しいキーを貼り直してください。';
         } else if (lastErrMsg.includes('429') || lastErrMsg.includes('Quota exceeded') || lastErrMsg.includes('RESOURCE_EXHAUSTED')) {
           friendlyMsg = '【1日の利用制限に達しました】\n無料利用枠の上限に達しています。明日夜の解除をお待ちください。';
+        } else if (lastErrMsg.includes('not found') || lastErrMsg.includes('is no longer available')) {
+          friendlyMsg = '【モデル指定エラー】\n指定されたAIモデルが存在しないか、提供が終了しています。アプリを最新版に更新してください。';
         } else {
           friendlyMsg = `【通信エラー】\n${lastErrMsg}`;
         }
