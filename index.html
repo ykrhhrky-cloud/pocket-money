@@ -154,8 +154,8 @@
         <div class="min-w-0">
           <div class="flex items-center space-x-1.5 whitespace-nowrap">
             <h1 class="text-sm font-extrabold tracking-tight text-slate-800 leading-none whitespace-nowrap">スマートお小遣い帳</h1>
-            <!-- バージョン表示 (v1.26) -->
-            <span class="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200/80 shadow-2xs whitespace-nowrap">v1.26</span>
+            <!-- バージョン表示 (v1.27) -->
+            <span class="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200/80 shadow-2xs whitespace-nowrap">v1.27</span>
           </div>
           <span id="headerPeriodSub" class="text-[10px] font-bold text-blue-600 block mt-0.5 leading-none">当月</span>
         </div>
@@ -2947,8 +2947,8 @@
         throw new Error('Gemini APIキーが未設定です。設定から入力してください');
       }
 
-      // Gemini 3系最新モデルを配備（廃止された旧世代2.5は完全排除）
-      const models = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-flash-latest'];
+      // 混雑時にも自動回避できるよう、安定した最新モデル群を順にフォールバック
+      const models = ['gemini-3.8-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
       let lastError = null;
       let lastErrorRaw = '';
 
@@ -2966,17 +2966,18 @@
         if (abortSignal && abortSignal.aborted) throw new DOMException('Aborted', 'AbortError');
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-        // Gemini 3.8 Flash 向けに最速の思考レベル "low" を設定
+        // thinkingConfigに対応しているモデル向け設定（未対応モデルは自動フォールバック）
         const payload = {
           contents: [{ parts: [{ text: promptText }, { inlineData: { mimeType, data: base64Image } }] }],
           generationConfig: {
             temperature: 0.1,
-            responseMimeType: "application/json",
-            thinkingConfig: {
-              thinkingLevel: "low"
-            }
+            responseMimeType: "application/json"
           }
         };
+
+        if (model.includes('3.8') || model.includes('3.7')) {
+          payload.generationConfig.thinkingConfig = { thinkingLevel: "low" };
+        }
 
         const timeoutController = new AbortController();
         const timeoutId = setTimeout(() => timeoutController.abort(), 7500);
@@ -2991,8 +2992,8 @@
             signal: timeoutController.signal
           });
 
-          // もしthinkingConfigの設定で400エラーが返った場合は、設定を除去して即時リトライ
-          if (!resp.ok && resp.status === 400) {
+          // もし設定エラー（400）が出た場合は思考設定を外してリトライ
+          if (!resp.ok && resp.status === 400 && payload.generationConfig.thinkingConfig) {
             delete payload.generationConfig.thinkingConfig;
             resp = await fetch(endpoint, {
               method: 'POST',
@@ -3010,6 +3011,7 @@
             const errMsg = errJson.error?.message || `HTTP ${resp.status}`;
             lastError = new Error(`[${model}] ${errMsg}`);
             lastErrorRaw = JSON.stringify(errJson, null, 2);
+            // 混雑(503/high demand)やNotFound時は即座に次のモデルへ
             continue;
           }
 
@@ -3104,14 +3106,14 @@
           const rawStr = String(rawDetail) + ' ' + String(err.message || '');
           let friendlyJapaneseMessage = '【レシート解析エラー】\n画像の解析に失敗しました。もう一度お試しいただくか、手入力をご利用ください。';
 
-          if (rawStr.includes('429') || rawStr.includes('Quota exceeded') || rawStr.includes('limit: 20') || rawStr.includes('RESOURCE_EXHAUSTED')) {
+          if (rawStr.includes('high demand') || rawStr.includes('503') || rawStr.includes('overloaded')) {
+            friendlyJapaneseMessage = '【Google側の一時的な混雑】\n現在Google側でAIサーバーへのアクセスが世界的に集中しています。1〜2分置くか、もう一度お試しください。';
+          } else if (rawStr.includes('429') || rawStr.includes('Quota exceeded') || rawStr.includes('limit: 20') || rawStr.includes('RESOURCE_EXHAUSTED')) {
             friendlyJapaneseMessage = '【1日の利用制限に達しました】\nGoogle Gemini APIの無料利用枠（1日20回程度）を超過しました。明日夜の制限解除をお待ちいただくか、Google AI Studioで従量課金を有効にしてください。';
           } else if (rawStr.includes('API_KEY_INVALID') || rawStr.includes('API key not valid') || rawStr.includes('APIキーが未設定')) {
             friendlyJapaneseMessage = '【APIキーが無効または未設定です】\n右上の⚙️設定から正しいGemini APIキーを入力して保存してください。';
           } else if (rawStr.includes('AbortError') || rawStr.includes('timeout') || rawStr.includes('Failed to fetch')) {
             friendlyJapaneseMessage = '【通信がタイムアウトしました】\n電波の良い安定したネットワーク環境で再度お試しください。';
-          } else if (rawStr.includes('no longer available') || rawStr.includes('NOT_FOUND') || rawStr.includes('404')) {
-            friendlyJapaneseMessage = '【モデル接続エラー】\n接続先AIモデルが更新されたか見つかりません。最新モデル（gemini-3.8-flash）への接続設定を確認してください。';
           } else if (rawStr.includes('抽出できませんでした') || rawStr.includes('空です') || rawStr.includes('読み取れませんでした')) {
             friendlyJapaneseMessage = '【レシートの内容を読み取れませんでした】\n照明の反射や影を避けて、金額と日付がくっきり写るように撮影し直してください。';
           } else if (err.message && !err.message.includes('[') && !err.message.includes('{')) {
@@ -3156,39 +3158,60 @@
 
       if (!key) {
         statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-amber-50 text-amber-700 font-bold block';
-        statusEl.textContent = 'APIキーを入力してください';
+        statusEl.textContent = '【未入力】Gemini APIキーを入力してください';
         return;
       }
 
       statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-blue-50 text-blue-700 block';
-      statusEl.textContent = 'Gemini 3.8 Flash に疎通テスト中...';
+      statusEl.textContent = '疎通テスト中（複数モデルの空き状況を確認中...）';
 
-      try {
-        // 単なるモデル一覧ではなく、実際に gemini-3.8-flash に対して最小トークンのリクエストを投げて実動作テスト
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${key}`;
-        const resp = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: "ping" }] }],
-            generationConfig: {
-              maxOutputTokens: 2,
-              thinkingConfig: { thinkingLevel: "low" }
-            }
-          })
-        });
+      // 混雑を自動回避できるよう、安定モデルを順にテスト
+      const candidateModels = ['gemini-3.8-flash', 'gemini-2.0-flash', 'gemini-1.5-flash', 'gemini-flash-latest'];
+      let connectedModel = null;
+      let lastErrMsg = '';
 
-        if (resp.ok) {
-          statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-emerald-50 text-emerald-700 font-bold block';
-          statusEl.textContent = '接続成功！Gemini 3.8 Flash 稼働中（高速レシート解析が利用可能）';
-        } else {
-          const errData = await resp.json().catch(() => ({}));
-          const errMsg = errData.error?.message || `HTTP ${resp.status}`;
-          throw new Error(errMsg);
+      for (const m of candidateModels) {
+        try {
+          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${key}`;
+          const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: "ping" }] }],
+              generationConfig: { maxOutputTokens: 2 }
+            })
+          });
+
+          if (resp.ok) {
+            connectedModel = m;
+            break;
+          } else {
+            const errData = await resp.json().catch(() => ({}));
+            lastErrMsg = errData.error?.message || `HTTP ${resp.status}`;
+          }
+        } catch (e) {
+          lastErrMsg = e.message || String(e);
         }
-      } catch (e) {
-        statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-rose-50 text-rose-700 font-bold block';
-        statusEl.textContent = `接続エラー: ${e.message}`;
+      }
+
+      if (connectedModel) {
+        statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-emerald-50 text-emerald-700 font-bold block leading-relaxed';
+        statusEl.textContent = `接続成功！${connectedModel} 稼働中\n（高速レシート解析が利用可能です）`;
+      } else {
+        // 日本語に親切に翻訳して表示
+        let friendlyMsg = '【接続エラー】通信に失敗しました。';
+        if (lastErrMsg.includes('high demand') || lastErrMsg.includes('503') || lastErrMsg.includes('overloaded')) {
+          friendlyMsg = '【Google側の一時的な混雑】\n現在GoogleのAIサーバーへ世界中からアクセスが集中しています。数分お待ちいただくか、再度テストをお試しください。';
+        } else if (lastErrMsg.includes('API_KEY_INVALID') || lastErrMsg.includes('API key not valid')) {
+          friendlyMsg = '【APIキーが無効です】\n入力されたGemini APIキーが間違っているか、無効になっています。Google AI Studioから正しいキーを貼り直してください。';
+        } else if (lastErrMsg.includes('429') || lastErrMsg.includes('Quota exceeded') || lastErrMsg.includes('RESOURCE_EXHAUSTED')) {
+          friendlyMsg = '【1日の利用制限に達しました】\n無料利用枠の上限に達しています。明日夜の解除をお待ちください。';
+        } else {
+          friendlyMsg = `【通信エラー】\n${lastErrMsg}`;
+        }
+
+        statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-rose-50 text-rose-700 font-bold block leading-relaxed whitespace-pre-line';
+        statusEl.textContent = friendlyMsg;
       }
     }
 
