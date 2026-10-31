@@ -154,8 +154,8 @@
         <div class="min-w-0">
           <div class="flex items-center space-x-1.5 whitespace-nowrap">
             <h1 class="text-sm font-extrabold tracking-tight text-slate-800 leading-none whitespace-nowrap">スマートお小遣い帳</h1>
-            <!-- バージョン表示 (v1.21) -->
-            <span class="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200/80 shadow-2xs whitespace-nowrap">v1.21</span>
+            <!-- バージョン表示 (v1.22) -->
+            <span class="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200/80 shadow-2xs whitespace-nowrap">v1.22</span>
           </div>
           <span id="headerPeriodSub" class="text-[10px] font-bold text-blue-600 block mt-0.5 leading-none">当月</span>
         </div>
@@ -1539,8 +1539,10 @@
     let isBudgetExpanded = false;
     let isRankingExpanded = false;
 
+    // スプレッドシート連携用デフォルトURL
+    const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbz66KpSVO_vpfIpSIDQ81gzxESb45_do4hZI_Rxk07Bz73V_WX6sdQC4x6z5NRINEVN/exec';
     let geminiApiKey = '';
-    let gasEndpoint = '';
+    let gasEndpoint = DEFAULT_GAS_URL;
     let receiptAbortController = null;
     let receiptTimerInterval = null;
     let receiptStartTime = 0;
@@ -1710,7 +1712,7 @@
 
         monthlyBudget = Number(localStorage.getItem('okozukai_budget_v2')) || 35000;
         geminiApiKey = localStorage.getItem('okozukai_gemini_key') || '';
-        gasEndpoint = localStorage.getItem('okozukai_gas_url') || '';
+        gasEndpoint = localStorage.getItem('okozukai_gas_url') || DEFAULT_GAS_URL;
 
         if (document.getElementById('geminiApiKey')) document.getElementById('geminiApiKey').value = geminiApiKey;
         if (document.getElementById('gasUrl')) document.getElementById('gasUrl').value = gasEndpoint;
