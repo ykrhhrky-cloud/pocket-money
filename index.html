@@ -154,8 +154,8 @@
         <div class="min-w-0">
           <div class="flex items-center space-x-1.5 whitespace-nowrap">
             <h1 class="text-sm font-extrabold tracking-tight text-slate-800 leading-none whitespace-nowrap">スマートお小遣い帳</h1>
-            <!-- バージョン表示 (v1.24) -->
-            <span class="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200/80 shadow-2xs whitespace-nowrap">v1.24</span>
+            <!-- バージョン表示 (v1.26) -->
+            <span class="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200/80 shadow-2xs whitespace-nowrap">v1.26</span>
           </div>
           <span id="headerPeriodSub" class="text-[10px] font-bold text-blue-600 block mt-0.5 leading-none">当月</span>
         </div>
@@ -2940,15 +2940,15 @@
       return 'その他雑費';
     }
 
-    // Gemini 3.8 Flash (思考無効化 thinkingBudget: 0) による爆速レシート解析
+    // Gemini 3.8 Flash (最速思考レベル thinkingLevel: "low") による爆速レシート解析
     async function analyzeReceiptWithGemini(base64Image, mimeType, abortSignal, customKey = '') {
       const apiKey = customKey || geminiApiKey || localStorage.getItem('okozukai_gemini_key') || "";
       if (!apiKey) {
         throw new Error('Gemini APIキーが未設定です。設定から入力してください');
       }
 
-      // Gemini 3.8 Flash を筆頭に配備
-      const models = ['gemini-3.8-flash', 'gemini-2.5-flash'];
+      // Gemini 3系最新モデルを配備（廃止された旧世代2.5は完全排除）
+      const models = ['gemini-3.8-flash', 'gemini-3.7-flash', 'gemini-flash-latest'];
       let lastError = null;
       let lastErrorRaw = '';
 
@@ -2966,14 +2966,14 @@
         if (abortSignal && abortSignal.aborted) throw new DOMException('Aborted', 'AbortError');
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
-        // 【爆速化の要】thinkingBudget: 0 で不要な推論ステップをスキップして即時出力
+        // Gemini 3.8 Flash 向けに最速の思考レベル "low" を設定
         const payload = {
           contents: [{ parts: [{ text: promptText }, { inlineData: { mimeType, data: base64Image } }] }],
           generationConfig: {
             temperature: 0.1,
             responseMimeType: "application/json",
             thinkingConfig: {
-              thinkingBudget: 0
+              thinkingLevel: "low"
             }
           }
         };
@@ -2984,38 +2984,29 @@
         if (abortSignal) abortSignal.addEventListener('abort', onAbort, { once: true });
 
         try {
-          const resp = await fetch(endpoint, {
+          let resp = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
             signal: timeoutController.signal
           });
 
+          // もしthinkingConfigの設定で400エラーが返った場合は、設定を除去して即時リトライ
+          if (!resp.ok && resp.status === 400) {
+            delete payload.generationConfig.thinkingConfig;
+            resp = await fetch(endpoint, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+              signal: timeoutController.signal
+            });
+          }
+
           clearTimeout(timeoutId);
           if (abortSignal) abortSignal.removeEventListener('abort', onAbort);
 
           if (!resp.ok) {
             const errJson = await resp.json().catch(() => ({}));
-            
-            // もしthinkingConfigが未対応のモデルやエラーだった場合のフォールバック試行
-            if (resp.status === 400 && JSON.stringify(errJson).includes('thinkingConfig')) {
-              delete payload.generationConfig.thinkingConfig;
-              const retryResp = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-              });
-              if (retryResp.ok) {
-                const resData = await retryResp.json();
-                const textCandidate = resData.candidates?.[0]?.content?.parts?.[0]?.text;
-                if (textCandidate) {
-                  const cleanJson = textCandidate.replace(/```json/g, '').replace(/```/g, '').trim();
-                  const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
-                  if (jsonMatch) return JSON.parse(jsonMatch[0]);
-                }
-              }
-            }
-
             const errMsg = errJson.error?.message || `HTTP ${resp.status}`;
             lastError = new Error(`[${model}] ${errMsg}`);
             lastErrorRaw = JSON.stringify(errJson, null, 2);
@@ -3110,8 +3101,8 @@
         if (err.name !== 'AbortError') {
           console.error(err);
           const rawDetail = err.rawDetail || err.stack || err.toString();
-          let friendlyJapaneseMessage = err.message || 'レシートの解析中にエラーが発生しました。';
-          const rawStr = String(rawDetail) + ' ' + String(err.message);
+          const rawStr = String(rawDetail) + ' ' + String(err.message || '');
+          let friendlyJapaneseMessage = '【レシート解析エラー】\n画像の解析に失敗しました。もう一度お試しいただくか、手入力をご利用ください。';
 
           if (rawStr.includes('429') || rawStr.includes('Quota exceeded') || rawStr.includes('limit: 20') || rawStr.includes('RESOURCE_EXHAUSTED')) {
             friendlyJapaneseMessage = '【1日の利用制限に達しました】\nGoogle Gemini APIの無料利用枠（1日20回程度）を超過しました。明日夜の制限解除をお待ちいただくか、Google AI Studioで従量課金を有効にしてください。';
@@ -3119,8 +3110,12 @@
             friendlyJapaneseMessage = '【APIキーが無効または未設定です】\n右上の⚙️設定から正しいGemini APIキーを入力して保存してください。';
           } else if (rawStr.includes('AbortError') || rawStr.includes('timeout') || rawStr.includes('Failed to fetch')) {
             friendlyJapaneseMessage = '【通信がタイムアウトしました】\n電波の良い安定したネットワーク環境で再度お試しください。';
+          } else if (rawStr.includes('no longer available') || rawStr.includes('NOT_FOUND') || rawStr.includes('404')) {
+            friendlyJapaneseMessage = '【モデル接続エラー】\n接続先AIモデルが更新されたか見つかりません。最新モデル（gemini-3.8-flash）への接続設定を確認してください。';
           } else if (rawStr.includes('抽出できませんでした') || rawStr.includes('空です') || rawStr.includes('読み取れませんでした')) {
             friendlyJapaneseMessage = '【レシートの内容を読み取れませんでした】\n照明の反射や影を避けて、金額と日付がくっきり写るように撮影し直してください。';
+          } else if (err.message && !err.message.includes('[') && !err.message.includes('{')) {
+            friendlyJapaneseMessage = `【エラー】\n${err.message}`;
           }
 
           showErrorModal('レシート解析エラー', friendlyJapaneseMessage, rawDetail);
@@ -3166,29 +3161,34 @@
       }
 
       statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-blue-50 text-blue-700 block';
-      statusEl.textContent = 'Google AIに接続テスト中...';
+      statusEl.textContent = 'Gemini 3.8 Flash に疎通テスト中...';
 
       try {
-        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`, {
-          method: 'GET'
+        // 単なるモデル一覧ではなく、実際に gemini-3.8-flash に対して最小トークンのリクエストを投げて実動作テスト
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${key}`;
+        const resp = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: "ping" }] }],
+            generationConfig: {
+              maxOutputTokens: 2,
+              thinkingConfig: { thinkingLevel: "low" }
+            }
+          })
         });
-        if (resp.ok) {
-          const data = await resp.json();
-          const usableModels = (data.models || [])
-            .map(m => m.name.replace('models/', ''))
-            .filter(name => name.includes('flash'))
-            .slice(0, 3)
-            .join(', ');
 
+        if (resp.ok) {
           statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-emerald-50 text-emerald-700 font-bold block';
-          statusEl.textContent = `接続成功！高速モデル利用可能 (${usableModels || '利用準備完了'})`;
+          statusEl.textContent = '接続成功！Gemini 3.8 Flash 稼働中（高速レシート解析が利用可能）';
         } else {
           const errData = await resp.json().catch(() => ({}));
-          throw new Error(errData.error?.message || `HTTP ${resp.status}`);
+          const errMsg = errData.error?.message || `HTTP ${resp.status}`;
+          throw new Error(errMsg);
         }
       } catch (e) {
         statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-rose-50 text-rose-700 font-bold block';
-        statusEl.textContent = `エラー: ${e.message}`;
+        statusEl.textContent = `接続エラー: ${e.message}`;
       }
     }
 
