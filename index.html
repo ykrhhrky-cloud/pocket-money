@@ -154,8 +154,8 @@
         <div class="min-w-0">
           <div class="flex items-center space-x-1.5 whitespace-nowrap">
             <h1 class="text-sm font-extrabold tracking-tight text-slate-800 leading-none whitespace-nowrap">スマートお小遣い帳</h1>
-            <!-- バージョン表示 (v1.23) -->
-            <span class="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200/80 shadow-2xs whitespace-nowrap">v1.23</span>
+            <!-- バージョン表示 (v1.24) -->
+            <span class="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200/80 shadow-2xs whitespace-nowrap">v1.24</span>
           </div>
           <span id="headerPeriodSub" class="text-[10px] font-bold text-blue-600 block mt-0.5 leading-none">当月</span>
         </div>
@@ -254,7 +254,7 @@
                 </div>
               </div>
 
-              <!-- 右側ブロック：今期受取、今期支出、内訳 -->
+              <!-- 右側ブロック：今期収入、今期支出、内訳 -->
               <div class="flex-1 bg-white rounded-xl p-2 shadow-2xs border border-blue-100 flex flex-col justify-between min-w-0 text-slate-800">
                 <div class="flex items-center justify-between">
                   <span class="text-[9.5px] text-slate-800 font-extrabold tracking-tight">今期収入</span>
@@ -966,7 +966,7 @@
     <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mb-3">
       <svg class="w-6 h-6 text-white animate-spin-custom" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
     </div>
-    <h3 class="text-sm font-bold tracking-wide">レシートを解析中...</h3>
+    <h3 class="text-sm font-bold tracking-wide">レシートを高速解析中...</h3>
     <div class="flex items-center space-x-1 mt-1 bg-white/10 px-3 py-1 rounded-full border border-white/20">
       <span id="receiptTimerText" class="text-xs font-mono font-bold text-emerald-300">0.0秒</span>
     </div>
@@ -1163,7 +1163,6 @@
 
     // ==================== 支払い方法 アコーディオン選択 ロジック ====================
 
-    // 手入力用
     function toggleManualPaymentDropdown() {
       const menu = document.getElementById('manualPaymentDropdownMenu');
       const arrow = document.getElementById('manualPaymentDropdownArrow');
@@ -1560,7 +1559,7 @@
     let analyticsMonth = new Date().getMonth() + 1;
     let currentTrendPeriod = '1m';
     let currentTrendGraphMode = 'diff';
-    let pieDimension = 'category'; // category or payment
+    let pieDimension = 'category';
 
     let currentManualType = 'expense';
     let currentRecurringType = 'expense';
@@ -1581,7 +1580,7 @@
     let receiptAbortController = null;
     let receiptTimerInterval = null;
     let receiptStartTime = 0;
-    let expandedPayTypes = new Set(['credit', 'electronic']); // 初期展開
+    let expandedPayTypes = new Set(['credit', 'electronic']);
 
     window.addEventListener('DOMContentLoaded', () => {
       loadStoredData();
@@ -1767,7 +1766,6 @@
     }
 
     function populateDropdowns() {
-      // 日付
       const recDay = document.getElementById('recDay');
       if (recDay) {
         recDay.innerHTML = '';
@@ -2166,7 +2164,7 @@
           ? '<span class="px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200 flex-shrink-0">収入</span>'
           : '<span class="px-1.5 py-0.2 rounded bg-rose-50 text-rose-700 font-extrabold text-[8.5px] border border-rose-200 flex-shrink-0">支出</span>';
 
-        // 項目（科目）バッジ（支出時は支出バッジと同じ薄いローズ色、収入時はエメラルド色）
+        // 項目（科目）バッジ（支出時は薄いローズ色、収入時はエメラルド色）
         const categoryBadge = isInc
           ? `<span class="px-1.5 py-0.2 rounded bg-emerald-50 border border-emerald-200 text-[8.5px] font-bold text-emerald-700">${escapeHtml(t.category)}</span>`
           : `<span class="px-1.5 py-0.2 rounded bg-rose-50 border border-rose-200 text-[8.5px] font-bold text-rose-700">${escapeHtml(t.category)}</span>`;
@@ -2556,7 +2554,6 @@
       const prefix = `${analyticsYear}-${String(analyticsMonth).padStart(2, '0')}`;
       const filtered = transactions.filter(t => t.type === 'expense' && t.date && t.date.startsWith(prefix));
 
-      // 今期の受取合計も算出（消化率用）
       let totalIncomePeriod = 0;
       transactions.filter(t => t.type === 'income' && t.date && t.date.startsWith(prefix)).forEach(t => {
         totalIncomePeriod += (Number(t.amount) || 0);
@@ -2575,7 +2572,6 @@
       const data = sortedEntries.map(e => e[1]);
       const totalExpense = data.reduce((sum, v) => sum + v, 0);
 
-      // ランキングリストの描画
       const rankingCount = document.getElementById('rankingItemCountBadge');
       if (rankingCount) rankingCount.textContent = `(${sortedEntries.length}件)`;
       const listContainer = document.getElementById('pieBreakdownListContainer');
@@ -2622,12 +2618,12 @@
           ctx.fillStyle = '#64748b';
           ctx.fillText('支出総額', cx, cy - 18);
 
-          // 2行目: 支出金額（太字）
+          // 2行目: 支出金額
           ctx.font = '900 15px monospace';
           ctx.fillStyle = '#0f172a';
           ctx.fillText(`¥${totalExpense.toLocaleString()}`, cx, cy - 3);
 
-          // 3行目: 消化率 (収入がある場合)
+          // 3行目: 消化率
           if (totalIncomePeriod > 0) {
             const ratioPct = Math.round((totalExpense / totalIncomePeriod) * 100);
             const isOver = ratioPct > 100;
@@ -2670,7 +2666,7 @@
             const cos = Math.cos(midAngle);
             const sin = Math.sin(midAngle);
 
-            // 1. スライス内への「割合（%）」直接刻印（5%以上のスライス）
+            // 1. スライス内への「割合（%）」直接刻印
             if (pct >= 5) {
               const midR = innerRadius + (outerRadius - innerRadius) * 0.52;
               const textX = x + cos * midR;
@@ -2687,7 +2683,7 @@
               ctx.shadowBlur = 0;
             }
 
-            // 2. 引き出し線 ＋ 上下2段白ピルプレート（3%以上のスライス）
+            // 2. 引き出し線 ＋ 上下2段白ピルプレート
             if (pct >= 3) {
               const rawLabel = labels[i];
               const line1Text = rawLabel;
@@ -2704,7 +2700,6 @@
               const x3 = x2 + (isRight ? 8 : -8);
               const y3 = y2;
 
-              // ピル寸法計算
               ctx.font = 'bold 9px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
               const w1 = ctx.measureText(line1Text).width;
               ctx.font = '800 8.5px monospace';
@@ -2717,22 +2712,18 @@
               let pillX = isRight ? x3 + 2 : x3 - pillWidth - 2;
               let pillY = y3 - pillHeight / 2;
 
-              // 【見切れ防止クランプ制御（左右 X座標）】Canvas端から4px以内に収める
               const minX = 4;
               const maxX = chart.width - pillWidth - 4;
               if (pillX < minX) pillX = minX;
               if (pillX > maxX) pillX = maxX;
 
-              // 【見切れ防止クランプ制御（上下 Y座標）】Canvas端から4px以内に収める
               const minY = 4;
               const maxY = chart.height - pillHeight - 4;
               if (pillY < minY) pillY = minY;
               if (pillY > maxY) pillY = maxY;
 
-              // ピルの上下クランプに合わせて引き出し線の終点を自然に接続
               const targetY = pillY + pillHeight / 2;
 
-              // 引き出し線描画
               ctx.strokeStyle = '#94a3b8';
               ctx.lineWidth = 1.2;
               ctx.beginPath();
@@ -2741,7 +2732,6 @@
               ctx.lineTo(x3, targetY);
               ctx.stroke();
 
-              // 半透明白ピルプレート
               ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
               ctx.strokeStyle = 'rgba(203, 213, 225, 0.85)';
               ctx.lineWidth = 1;
@@ -2754,14 +2744,12 @@
               ctx.fill();
               ctx.stroke();
 
-              // 上段：名称
               ctx.font = 'bold 9px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
               ctx.fillStyle = '#0f172a';
               ctx.textAlign = 'left';
               ctx.textBaseline = 'top';
               ctx.fillText(line1Text, pillX + paddingX, pillY + 3);
 
-              // 下段：金額
               ctx.font = '800 8.5px monospace';
               ctx.fillStyle = '#475569';
               ctx.fillText(line2Text, pillX + paddingX, pillY + 13);
@@ -2855,7 +2843,7 @@
         }];
       } else if (currentTrendGraphMode === 'both') {
         datasets = [
-          { label: '受取', data: incomeVals, backgroundColor: '#10B981', borderRadius: 4 },
+          { label: '収入', data: incomeVals, backgroundColor: '#10B981', borderRadius: 4 },
           { label: '支出', data: expenseVals, backgroundColor: '#EF4444', borderRadius: 4 }
         ];
       } else {
@@ -2904,8 +2892,8 @@
       renderAnalyticsCharts();
     }
 
-    // レシート画像 Canvas圧縮
-    async function compressImage(file, maxDimension = 1280, quality = 0.8) {
+    // レシート画像 Canvas圧縮（長辺1000px / 品質0.68に最適化して超高速アップロード）
+    async function compressImage(file, maxDimension = 1000, quality = 0.68) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -2952,7 +2940,7 @@
       return 'その他雑費';
     }
 
-    // Gemini 3.8 Flash を優先した高精度レシート解析通信
+    // Gemini 3.8 Flash (思考無効化 thinkingBudget: 0) による爆速レシート解析
     async function analyzeReceiptWithGemini(base64Image, mimeType, abortSignal, customKey = '') {
       const apiKey = customKey || geminiApiKey || localStorage.getItem('okozukai_gemini_key') || "";
       if (!apiKey) {
@@ -2960,7 +2948,7 @@
       }
 
       // Gemini 3.8 Flash を筆頭に配備
-      const models = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
+      const models = ['gemini-3.8-flash', 'gemini-2.5-flash'];
       let lastError = null;
       let lastErrorRaw = '';
 
@@ -2978,16 +2966,20 @@
         if (abortSignal && abortSignal.aborted) throw new DOMException('Aborted', 'AbortError');
         const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
+        // 【爆速化の要】thinkingBudget: 0 で不要な推論ステップをスキップして即時出力
         const payload = {
           contents: [{ parts: [{ text: promptText }, { inlineData: { mimeType, data: base64Image } }] }],
           generationConfig: {
             temperature: 0.1,
-            responseMimeType: "application/json"
+            responseMimeType: "application/json",
+            thinkingConfig: {
+              thinkingBudget: 0
+            }
           }
         };
 
         const timeoutController = new AbortController();
-        const timeoutId = setTimeout(() => timeoutController.abort(), 9500);
+        const timeoutId = setTimeout(() => timeoutController.abort(), 7500);
         const onAbort = () => timeoutController.abort();
         if (abortSignal) abortSignal.addEventListener('abort', onAbort, { once: true });
 
@@ -3004,6 +2996,26 @@
 
           if (!resp.ok) {
             const errJson = await resp.json().catch(() => ({}));
+            
+            // もしthinkingConfigが未対応のモデルやエラーだった場合のフォールバック試行
+            if (resp.status === 400 && JSON.stringify(errJson).includes('thinkingConfig')) {
+              delete payload.generationConfig.thinkingConfig;
+              const retryResp = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              if (retryResp.ok) {
+                const resData = await retryResp.json();
+                const textCandidate = resData.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (textCandidate) {
+                  const cleanJson = textCandidate.replace(/```json/g, '').replace(/```/g, '').trim();
+                  const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
+                  if (jsonMatch) return JSON.parse(jsonMatch[0]);
+                }
+              }
+            }
+
             const errMsg = errJson.error?.message || `HTTP ${resp.status}`;
             lastError = new Error(`[${model}] ${errMsg}`);
             lastErrorRaw = JSON.stringify(errJson, null, 2);
