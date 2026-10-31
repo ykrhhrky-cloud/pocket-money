@@ -154,8 +154,8 @@
         <div class="min-w-0">
           <div class="flex items-center space-x-1.5 whitespace-nowrap">
             <h1 class="text-sm font-extrabold tracking-tight text-slate-800 leading-none whitespace-nowrap">スマートお小遣い帳</h1>
-            <!-- バージョン表示 (v1.22) -->
-            <span class="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200/80 shadow-2xs whitespace-nowrap">v1.22</span>
+            <!-- バージョン表示 (v1.23) -->
+            <span class="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200/80 shadow-2xs whitespace-nowrap">v1.23</span>
           </div>
           <span id="headerPeriodSub" class="text-[10px] font-bold text-blue-600 block mt-0.5 leading-none">当月</span>
         </div>
@@ -899,9 +899,13 @@
       </div>
 
       <div class="space-y-2">
-        <label class="text-xs font-bold text-slate-800 block">Gemini APIキー</label>
+        <label class="text-xs font-bold text-slate-800 block">Gemini APIキー (レシート解析用)</label>
         <input type="password" id="geminiApiKey" placeholder="AIzaSy..." class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-2 text-xs font-mono outline-none">
-        <button onclick="saveApiKey()" class="w-full py-2 bg-slate-800 text-white rounded-2xl text-xs font-bold hover:bg-slate-900 transition">保存</button>
+        <div class="flex space-x-2 pt-1">
+          <button onclick="saveApiKey()" class="flex-1 py-2 bg-slate-800 text-white rounded-2xl text-xs font-bold hover:bg-slate-900 transition">保存</button>
+          <button onclick="testGeminiConnection()" class="px-3 py-2 bg-blue-50 text-blue-600 rounded-2xl text-xs font-bold hover:bg-blue-100 transition">テスト</button>
+        </div>
+        <div id="geminiTestStatus" class="hidden text-[11px] p-2.5 rounded-2xl font-bold"></div>
       </div>
 
       <div class="border-t border-slate-100 pt-3 space-y-2">
@@ -976,6 +980,37 @@
   <!-- トースト通知 -->
   <div id="toast" class="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl opacity-0 pointer-events-none transition-all duration-300">
     メッセージ
+  </div>
+
+  <!-- エラー詳細モーダル (手動で閉じるまで消えない・スクショ用) -->
+  <div id="errorDetailModal" class="hidden fixed inset-0 z-[80] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-3.5 animate-scale-up border border-rose-100 max-h-[85vh] flex flex-col">
+      <div class="flex items-center space-x-2 text-rose-600 border-b border-rose-100 pb-2.5 flex-shrink-0">
+        <div class="w-8 h-8 rounded-xl bg-rose-50 flex items-center justify-center flex-shrink-0">
+          <svg class="w-5 h-5 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        </div>
+        <div class="min-w-0 flex-1">
+          <h3 id="errorModalTitle" class="text-sm font-black text-slate-800 truncate">レシート解析エラー</h3>
+          <p class="text-[10px] text-slate-400">スクリーンショットを撮って確認できます</p>
+        </div>
+        <button type="button" onclick="closeModal('errorDetailModal')" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto custom-scrollbar space-y-2 text-xs">
+        <p id="errorModalMessage" class="font-bold text-slate-700 leading-relaxed whitespace-pre-line"></p>
+        <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 space-y-1">
+          <div class="flex items-center justify-between text-[10px] font-mono text-slate-400">
+            <span>エラー詳細 / API応答:</span>
+            <button type="button" onclick="copyErrorDetails()" class="text-blue-600 font-bold hover:underline">コピー</button>
+          </div>
+          <pre id="errorModalRaw" class="text-[10px] font-mono text-rose-700 whitespace-pre-wrap break-all max-h-48 overflow-y-auto bg-white p-2 rounded-xl border border-rose-100 select-all"></pre>
+        </div>
+      </div>
+
+      <div class="pt-2 border-t border-slate-100 flex space-x-2 flex-shrink-0">
+        <button type="button" onclick="closeModal('errorDetailModal')" class="flex-1 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold active:scale-95 transition">閉じる</button>
+      </div>
+    </div>
   </div>
 
   <!-- ==================== JavaScript ロジック ==================== -->
@@ -2895,13 +2930,116 @@
       });
     }
 
+    // AIの返した科目をお小遣い帳の正式科目にマッピング
+    function normalizeCategory(rawCat) {
+      if (!rawCat) return '食費・ランチ';
+      const cat = String(rawCat).trim();
+      const allCats = [...variableExpenseCategories, ...fixedExpenseCategories];
+      if (allCats.includes(cat)) return cat;
+
+      if (cat.includes('タバコ') || cat.includes('煙草') || cat.includes('電子タバコ') || cat.includes('嗜好品') || cat.includes('アイコス')) return '嗜好品';
+      if (cat.includes('立替') || cat.includes('立替払')) return '立替払';
+      if (cat.includes('酒') || cat.includes('居酒屋') || cat.includes('ビール') || cat.includes('バー') || cat.includes('飲み')) return '外食（酒あり）';
+      if (cat.includes('外食') || cat.includes('レストラン') || cat.includes('ディナー') || cat.includes('ラーメン')) return '外食（酒なし）';
+      if (cat.includes('カフェ') || cat.includes('コーヒー') || cat.includes('スタバ') || cat.includes('軽食') || cat.includes('喫茶')) return 'カフェ・軽食';
+      if (cat.includes('食') || cat.includes('弁当') || cat.includes('コンビニ') || cat.includes('ランチ') || cat.includes('パン')) return '食費・ランチ';
+      if (cat.includes('趣味') || cat.includes('ゲーム') || cat.includes('本') || cat.includes('映画') || cat.includes('娯楽')) return '趣味・娯楽';
+      if (cat.includes('日用') || cat.includes('ドラッグ') || cat.includes('消耗品')) return '日用品';
+      if (cat.includes('服') || cat.includes('美容') || cat.includes('カット') || cat.includes('サロン')) return '衣服・美容';
+      if (cat.includes('交通') || cat.includes('電車') || cat.includes('バス') || cat.includes('タクシー') || cat.includes('ガソリン')) return '交通費';
+      if (cat.includes('サブスク') || cat.includes('月額')) return 'サブスク';
+
+      return 'その他雑費';
+    }
+
+    // Gemini 3.8 Flash を優先した高精度レシート解析通信
+    async function analyzeReceiptWithGemini(base64Image, mimeType, abortSignal, customKey = '') {
+      const apiKey = customKey || geminiApiKey || localStorage.getItem('okozukai_gemini_key') || "";
+      if (!apiKey) {
+        throw new Error('Gemini APIキーが未設定です。設定から入力してください');
+      }
+
+      // Gemini 3.8 Flash を筆頭に配備
+      const models = ['gemini-3.8-flash', 'gemini-3.5-flash-lite'];
+      let lastError = null;
+      let lastErrorRaw = '';
+
+      const promptText = `あなたは日本のレシート解析アシスタントです。画像から情報を抽出し、指定のJSON形式のみで返答してください。Markdownのバッククォートは含めないでください。
+
+科目ルール:
+- 食費・ランチ/カフェ・軽食/外食（酒なし）/外食（酒あり）/嗜好品/立替払/趣味・娯楽/日用品/衣服・美容/交通費/サブスク/その他固定/その他雑費
+支払い方法推測:
+- クレカ/PayPay/楽天ペイ/D払い/交通系IC / Suica/現金/その他
+
+返却JSON構造:
+{"storeName":"店舗名","date":"YYYY-MM-DD","amount":合計金額数値,"category":"科目名","paymentMethod":"推定支払い方法","memo":"購入品要約"}`;
+
+      for (const model of models) {
+        if (abortSignal && abortSignal.aborted) throw new DOMException('Aborted', 'AbortError');
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+        const payload = {
+          contents: [{ parts: [{ text: promptText }, { inlineData: { mimeType, data: base64Image } }] }],
+          generationConfig: {
+            temperature: 0.1,
+            responseMimeType: "application/json"
+          }
+        };
+
+        const timeoutController = new AbortController();
+        const timeoutId = setTimeout(() => timeoutController.abort(), 9500);
+        const onAbort = () => timeoutController.abort();
+        if (abortSignal) abortSignal.addEventListener('abort', onAbort, { once: true });
+
+        try {
+          const resp = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: timeoutController.signal
+          });
+
+          clearTimeout(timeoutId);
+          if (abortSignal) abortSignal.removeEventListener('abort', onAbort);
+
+          if (!resp.ok) {
+            const errJson = await resp.json().catch(() => ({}));
+            const errMsg = errJson.error?.message || `HTTP ${resp.status}`;
+            lastError = new Error(`[${model}] ${errMsg}`);
+            lastErrorRaw = JSON.stringify(errJson, null, 2);
+            continue;
+          }
+
+          const resData = await resp.json();
+          const textCandidate = resData.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!textCandidate) throw new Error('解析結果テキストが空です');
+
+          const cleanJson = textCandidate.replace(/```json/g, '').replace(/```/g, '').trim();
+          const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
+          if (!jsonMatch) throw new Error('解析結果からJSON形式を抽出できませんでした');
+
+          return JSON.parse(jsonMatch[0]);
+        } catch (err) {
+          clearTimeout(timeoutId);
+          if (abortSignal) abortSignal.removeEventListener('abort', onAbort);
+          if (abortSignal && abortSignal.aborted) throw abortSignal.reason || new DOMException('Aborted', 'AbortError');
+          lastError = err;
+          lastErrorRaw = err.stack || err.toString();
+        }
+      }
+
+      const finalErr = lastError || new Error('レシート解析に失敗しました');
+      finalErr.rawDetail = lastErrorRaw;
+      throw finalErr;
+    }
+
     async function handleReceiptUpload(event) {
       const file = event.target.files?.[0];
       if (!file) return;
 
-      const apiKey = geminiApiKey || localStorage.getItem('okozukai_gemini_key');
+      const apiKey = geminiApiKey || localStorage.getItem('okozukai_gemini_key') || '';
       if (!apiKey) {
-        showToast('設定画面でGemini APIキーを入力してください', true);
+        showToast('⚠️ Gemini APIキーが未設定です。設定画面で登録してください', true);
         openModal('settingsModal');
         event.target.value = '';
         return;
@@ -2913,25 +3051,7 @@
 
       try {
         const base64 = await compressImage(file);
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-        const prompt = `日本のレシート画像から以下を抽出しJSONのみ返却してください。
-店舗名(storeName)、日付(date: YYYY-MM-DD)、合計金額(amount: 整数)、支払い方法の推測(paymentMethod: "クレカ"または"PayPay"または"現金"など)、品目要約(memo)
-返却形式: {"storeName":"店名","date":"2026-10-25","amount":1200,"paymentMethod":"クレカ","memo":"おにぎり等"}`;
-
-        const resp = await fetch(endpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }, { inlineData: { mimeType: 'image/jpeg', data: base64 } }] }],
-            generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
-          }),
-          signal: receiptAbortController.signal
-        });
-
-        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const resData = await resp.json();
-        const text = resData.candidates?.[0]?.content?.parts?.[0]?.text;
-        const parsed = JSON.parse(text);
+        const parsed = await analyzeReceiptWithGemini(base64, 'image/jpeg', receiptAbortController.signal, apiKey);
 
         stopReceiptTimer();
         showOverlay(false);
@@ -2943,12 +3063,14 @@
         document.getElementById('confReceiptMemo').value = parsed.memo || '';
 
         // 科目自動推論
+        const normalizedCat = normalizeCategory(parsed.category);
         const catSel = document.getElementById('confReceiptCategory');
         catSel.innerHTML = '';
         [...variableExpenseCategories, ...fixedExpenseCategories].forEach(c => {
           const opt = document.createElement('option');
           opt.value = c;
           opt.textContent = c;
+          if (c === normalizedCat) opt.selected = true;
           catSel.appendChild(opt);
         });
 
@@ -2963,20 +3085,98 @@
           targetPay = 'D払い';
         } else if (rawPay.includes('楽天')) {
           targetPay = '楽天ペイ';
+        } else if (rawPay.includes('suica') || rawPay.includes('ic')) {
+          targetPay = '交通系IC / Suica';
         }
         chooseReceiptPaymentMethod(targetPay);
 
         openModal('receiptConfirmModal');
         showToast('解析完了！内容を確認してください');
-      } catch (e) {
+      } catch (err) {
         stopReceiptTimer();
         showOverlay(false);
-        if (e.name !== 'AbortError') {
-          showToast('読み取りに失敗しました。手入力してください', true);
+        if (err.name !== 'AbortError') {
+          console.error(err);
+          const rawDetail = err.rawDetail || err.stack || err.toString();
+          let friendlyJapaneseMessage = err.message || 'レシートの解析中にエラーが発生しました。';
+          const rawStr = String(rawDetail) + ' ' + String(err.message);
+
+          if (rawStr.includes('429') || rawStr.includes('Quota exceeded') || rawStr.includes('limit: 20') || rawStr.includes('RESOURCE_EXHAUSTED')) {
+            friendlyJapaneseMessage = '【1日の利用制限に達しました】\nGoogle Gemini APIの無料利用枠（1日20回程度）を超過しました。明日夜の制限解除をお待ちいただくか、Google AI Studioで従量課金を有効にしてください。';
+          } else if (rawStr.includes('API_KEY_INVALID') || rawStr.includes('API key not valid') || rawStr.includes('APIキーが未設定')) {
+            friendlyJapaneseMessage = '【APIキーが無効または未設定です】\n右上の⚙️設定から正しいGemini APIキーを入力して保存してください。';
+          } else if (rawStr.includes('AbortError') || rawStr.includes('timeout') || rawStr.includes('Failed to fetch')) {
+            friendlyJapaneseMessage = '【通信がタイムアウトしました】\n電波の良い安定したネットワーク環境で再度お試しください。';
+          } else if (rawStr.includes('抽出できませんでした') || rawStr.includes('空です') || rawStr.includes('読み取れませんでした')) {
+            friendlyJapaneseMessage = '【レシートの内容を読み取れませんでした】\n照明の反射や影を避けて、金額と日付がくっきり写るように撮影し直してください。';
+          }
+
+          showErrorModal('レシート解析エラー', friendlyJapaneseMessage, rawDetail);
         }
       } finally {
         event.target.value = '';
         receiptAbortController = null;
+      }
+    }
+
+    function showErrorModal(title, message, raw = '') {
+      const modal = document.getElementById('errorDetailModal');
+      const titleEl = document.getElementById('errorModalTitle');
+      const msgEl = document.getElementById('errorModalMessage');
+      const rawEl = document.getElementById('errorModalRaw');
+      if (titleEl) titleEl.textContent = title || 'エラーが発生しました';
+      if (msgEl) msgEl.textContent = message || '';
+      if (rawEl) rawEl.textContent = typeof raw === 'object' ? JSON.stringify(raw, null, 2) : String(raw || '詳細情報なし');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function copyErrorDetails() {
+      const rawEl = document.getElementById('errorModalRaw');
+      if (!rawEl) return;
+      const text = rawEl.textContent;
+      const temp = document.createElement('textarea');
+      temp.value = text;
+      document.body.appendChild(temp);
+      temp.select();
+      document.execCommand('copy');
+      document.body.removeChild(temp);
+      showToast('エラー詳細をコピーしました');
+    }
+
+    async function testGeminiConnection() {
+      const statusEl = document.getElementById('geminiTestStatus');
+      const key = document.getElementById('geminiApiKey').value.trim() || geminiApiKey;
+
+      if (!key) {
+        statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-amber-50 text-amber-700 font-bold block';
+        statusEl.textContent = 'APIキーを入力してください';
+        return;
+      }
+
+      statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-blue-50 text-blue-700 block';
+      statusEl.textContent = 'Google AIに接続テスト中...';
+
+      try {
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`, {
+          method: 'GET'
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          const usableModels = (data.models || [])
+            .map(m => m.name.replace('models/', ''))
+            .filter(name => name.includes('flash'))
+            .slice(0, 3)
+            .join(', ');
+
+          statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-emerald-50 text-emerald-700 font-bold block';
+          statusEl.textContent = `接続成功！高速モデル利用可能 (${usableModels || '利用準備完了'})`;
+        } else {
+          const errData = await resp.json().catch(() => ({}));
+          throw new Error(errData.error?.message || `HTTP ${resp.status}`);
+        }
+      } catch (e) {
+        statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-rose-50 text-rose-700 font-bold block';
+        statusEl.textContent = `エラー: ${e.message}`;
       }
     }
 
