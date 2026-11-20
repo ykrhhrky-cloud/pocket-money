@@ -154,8 +154,8 @@
         <div class="min-w-0">
           <div class="flex items-center space-x-1.5 whitespace-nowrap">
             <h1 class="text-sm font-extrabold tracking-tight text-slate-800 leading-none whitespace-nowrap">スマートお小遣い帳</h1>
-            <!-- バージョン表示 (v1.34) -->
-            <span class="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200/80 shadow-2xs whitespace-nowrap">v1.34</span>
+            <!-- バージョン表示 (v1.35) -->
+            <span class="px-1.5 py-0.2 rounded-full bg-emerald-50 text-emerald-700 font-extrabold text-[8.5px] border border-emerald-200/80 shadow-2xs whitespace-nowrap">v1.35</span>
           </div>
           <span id="headerPeriodSub" class="text-[10px] font-bold text-blue-600 block mt-0.5 leading-none">当月</span>
         </div>
@@ -546,7 +546,7 @@
           <div class="flex items-center justify-between">
             <div>
               <h2 class="text-xs font-bold text-slate-900">定期収支・サブスク自動化</h2>
-              <p class="text-[10px] text-slate-400">毎月のお小遣いやサブスクを自動登録</p>
+              <p class="text-[10px] text-slate-400">毎月のお小遣いやサブスクを自動登録（タップで編集）</p>
             </div>
             <button onclick="openRecurringModal()" class="px-3 py-1.5 rounded-xl bg-blue-600 text-white text-xs font-bold active:scale-95 transition shadow-sm">
               + 定期設定
@@ -585,7 +585,7 @@
 
       <button onclick="switchView('recurring')" id="tab-recurring" class="tab-btn flex-1 flex flex-col items-center space-y-0.5 text-slate-400 transition">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-        <span class="text-[10px] font-semibold">定期管理</span>
+        <span class="text-[10px] font-semibold">定期収支</span>
       </button>
 
       <button onclick="openManualModal('expense')" class="flex-1 flex flex-col items-center space-y-0.5 text-slate-400 hover:text-slate-600 transition">
@@ -735,7 +735,7 @@
         <div class="relative">
           <div class="flex items-center justify-between mb-0.5">
             <label class="block text-[10px] font-bold text-slate-600" id="manualPayMethodLabel">支払い方法</label>
-            <button type="button" onclick="openPaymentMethodManageModal()" class="text-[9.5px] text-blue-600 font-bold hover:underline">管理⚙️</button>
+            <button type="button" onclick="openPaymentMethodManageModal()" class="text-[9.5px] text-blue-600 font-bold hover:underline">管理</button>
           </div>
           <button type="button" id="manualPaymentDropdownTrigger" onclick="toggleManualPaymentDropdown()" class="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold flex items-center justify-between outline-none focus:border-blue-500 active:scale-[0.99] transition">
             <div class="flex items-center space-x-1.5 truncate min-w-0">
@@ -749,7 +749,7 @@
           <div id="manualPaymentDropdownMenu" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200/90 rounded-2xl shadow-2xl z-[70] p-1.5 max-h-48 overflow-y-auto custom-scrollbar animate-scale-up">
             <div class="flex items-center justify-between px-1 pb-1 mb-1 border-b border-slate-100 text-[9px]">
               <span class="font-bold text-slate-400">タップして展開・選択</span>
-              <button type="button" onclick="openPaymentMethodManageModal()" class="text-blue-600 hover:underline font-bold">管理⚙️</button>
+              <button type="button" onclick="openPaymentMethodManageModal()" class="text-blue-600 hover:underline font-bold">管理</button>
             </div>
             <div id="manualPaymentDropdownList" class="space-y-1.5"></div>
           </div>
@@ -823,16 +823,54 @@
 
   <!-- 定期収支モーダル -->
   <div id="recurringModal" onclick="if(event.target === this) closeModal('recurringModal')" class="hidden fixed inset-0 z-50 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-3 select-none overflow-hidden">
-    <div onclick="event.stopPropagation()" class="bg-white w-full max-w-sm rounded-3xl p-4 shadow-2xl flex flex-col animate-scale-up relative">
+    <div onclick="event.stopPropagation()" class="bg-white w-full max-w-sm rounded-3xl p-4 shadow-2xl flex flex-col animate-scale-up relative overflow-hidden">
       <div class="flex items-center justify-between border-b border-slate-100 pb-2 flex-shrink-0">
-        <h3 class="text-sm font-bold text-slate-800" id="recurringModalTitle">定期設定</h3>
+        <h3 class="text-sm font-bold text-slate-800" id="recurringModalTitle">定期収支の設定</h3>
         <button type="button" onclick="closeModal('recurringModal')" class="w-7 h-7 flex items-center justify-center rounded-full text-slate-400 hover:text-slate-600 text-xl leading-none transition">&times;</button>
       </div>
 
-      <div class="py-2 space-y-2">
+      <div class="py-2 space-y-2 min-w-0">
         <div class="grid grid-cols-2 gap-1.5 p-0.5 bg-slate-100 rounded-xl text-xs font-bold">
           <button type="button" onclick="setRecurringType('expense')" id="btnRecTypeExpense" class="py-1.5 rounded-lg bg-white text-rose-600 shadow-xs">支出</button>
           <button type="button" onclick="setRecurringType('income')" id="btnRecTypeIncome" class="py-1.5 rounded-lg text-slate-600">収入</button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 min-w-0">
+          <div class="min-w-0">
+            <div class="flex items-center justify-between mb-0.5">
+              <span class="block text-[10px] font-bold text-slate-600 select-none">開始月</span>
+            </div>
+            <div class="relative flex items-center justify-between w-full max-w-full min-w-0 h-[34px] bg-slate-50 border border-slate-200 rounded-xl pl-2.5 overflow-hidden select-none">
+              <span id="recStartMonthDisplayText" class="text-xs font-semibold text-slate-800 truncate min-w-0 flex-1 pointer-events-none select-none">2026年11月</span>
+              <div class="relative w-9 h-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <svg class="w-4 h-4 text-slate-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="8" y1="2" x2="8" y2="6" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="3" y1="10" x2="21" y2="10" stroke-width="2"/>
+                </svg>
+                <input type="month" id="recStartMonth" onchange="updateRecStartMonthDisplay()" oninput="updateRecStartMonthDisplay()" aria-label="開始月を選択" class="opacity-0 absolute inset-0 w-full h-full min-w-0 max-w-full cursor-pointer">
+              </div>
+            </div>
+          </div>
+          <div class="min-w-0">
+            <div class="flex items-center justify-between mb-0.5">
+              <span class="block text-[10px] font-bold text-slate-600 select-none">終了月</span>
+              <button type="button" id="btnClearRecEndMonth" onclick="clearRecEndMonth()" class="hidden text-[9.5px] text-rose-500 hover:underline font-bold">解除</button>
+            </div>
+            <div class="relative flex items-center justify-between w-full max-w-full min-w-0 h-[34px] bg-slate-50 border border-slate-200 rounded-xl pl-2.5 overflow-hidden select-none">
+              <span id="recEndMonthDisplayText" class="text-xs font-semibold text-slate-400 truncate min-w-0 flex-1 pointer-events-none select-none">期限なし</span>
+              <div class="relative w-9 h-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                <svg class="w-4 h-4 text-slate-500 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <rect x="3" y="4" width="18" height="18" rx="2" stroke-width="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="8" y1="2" x2="8" y2="6" stroke-width="2" stroke-linecap="round"/>
+                  <line x1="3" y1="10" x2="21" y2="10" stroke-width="2"/>
+                </svg>
+                <input type="month" id="recEndMonth" onchange="updateRecEndMonthDisplay()" oninput="updateRecEndMonthDisplay()" aria-label="終了月を選択" class="opacity-0 absolute inset-0 w-full h-full min-w-0 max-w-full cursor-pointer">
+              </div>
+            </div>
+          </div>
         </div>
 
         <div>
@@ -859,7 +897,7 @@
         <div class="relative">
           <div class="flex items-center justify-between mb-0.5">
             <label class="block text-[10px] font-bold text-slate-600" id="recPayMethodLabel">支払い方法</label>
-            <button type="button" onclick="openPaymentMethodManageModal()" class="text-[9.5px] text-blue-600 font-bold hover:underline">管理⚙️</button>
+            <button type="button" onclick="openPaymentMethodManageModal()" class="text-[9.5px] text-blue-600 font-bold hover:underline">管理</button>
           </div>
           <button type="button" id="recPaymentDropdownTrigger" onclick="toggleRecPaymentDropdown()" class="w-full bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl px-2.5 py-1.5 text-xs font-bold flex items-center justify-between outline-none focus:border-blue-500 active:scale-[0.99] transition">
             <div class="flex items-center space-x-1.5 truncate min-w-0">
@@ -873,7 +911,7 @@
           <div id="recPaymentDropdownMenu" class="hidden absolute left-0 right-0 top-full mt-1 bg-white border border-slate-200/90 rounded-2xl shadow-2xl z-[70] p-1.5 max-h-48 overflow-y-auto custom-scrollbar animate-scale-up">
             <div class="flex items-center justify-between px-1 pb-1 mb-1 border-b border-slate-100 text-[9px]">
               <span class="font-bold text-slate-400">タップして展開・選択</span>
-              <button type="button" onclick="openPaymentMethodManageModal()" class="text-blue-600 hover:underline font-bold">管理⚙️</button>
+              <button type="button" onclick="openPaymentMethodManageModal()" class="text-blue-600 hover:underline font-bold">管理</button>
             </div>
             <div id="recPaymentDropdownList" class="space-y-1.5"></div>
           </div>
@@ -883,12 +921,15 @@
 
       <div class="flex space-x-2 pt-2 border-t border-slate-100 flex-shrink-0">
         <button type="button" onclick="closeModal('recurringModal')" class="flex-1 py-2 rounded-xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 active:scale-95 transition text-center cursor-pointer">キャンセル</button>
-        <button type="button" onclick="saveRecurringRule()" id="btnSaveRecurring" class="flex-1 py-2 rounded-xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700 active:scale-95 transition text-center cursor-pointer shadow-sm">保存する</button>
+        <button type="button" onclick="saveRecurringRule()" id="btnSaveRecurring" class="flex-1 py-2 rounded-xl bg-blue-600 text-xs font-bold text-white hover:bg-blue-700 active:scale-95 transition text-center cursor-pointer shadow-sm">この内容で登録</button>
       </div>
 
-      <div id="recModalDeleteArea" class="hidden pt-1 border-t border-slate-100 flex-shrink-0">
-        <button type="button" onclick="deleteRecurringInModal()" class="w-full py-1 text-xs font-bold text-rose-600 hover:bg-rose-50 rounded-lg transition text-center cursor-pointer">
-          この定期ルールを削除
+      <div id="recModalDeleteArea" class="hidden pt-2 mt-1 border-t border-slate-100 flex-shrink-0">
+        <button type="button" onclick="deleteRecurringInModal()" class="w-full py-2 rounded-xl bg-rose-50 hover:bg-rose-100 border border-rose-200/80 text-xs font-bold text-rose-600 active:scale-95 transition flex items-center justify-center space-x-1.5 cursor-pointer">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+          </svg>
+          <span>この定期ルールを削除</span>
         </button>
       </div>
     </div>
@@ -897,17 +938,79 @@
   <!-- 削除・初期化警告モーダル (二重確認用) -->
   <div id="deleteConfirmModal" class="hidden fixed inset-0 z-[70] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-white w-full max-w-xs rounded-3xl p-5 shadow-2xl text-center space-y-3 animate-scale-up">
-      <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 mx-auto flex items-center justify-center text-xl">
-        ⚠️
+      <div class="w-12 h-12 rounded-full bg-rose-100 text-rose-600 mx-auto flex items-center justify-center">
+        <svg class="w-6 h-6 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
       </div>
       <div>
         <h4 class="text-sm font-bold text-slate-800" id="deleteConfirmTitle">削除しますか？</h4>
-        <p class="text-xs text-rose-600 font-bold mt-0.5">⚠️ 削除すると元に戻せません</p>
+        <p class="text-xs text-rose-600 font-bold mt-0.5">削除すると元に戻せません</p>
         <p id="deleteConfirmMessage" class="text-[11px] text-slate-500 mt-1">選択された項目を完全に削除します。</p>
       </div>
       <div class="flex space-x-2 pt-1">
         <button type="button" onclick="closeModal('deleteConfirmModal')" class="flex-1 py-2.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50">キャンセル</button>
         <button type="button" id="btnExecuteDelete" class="flex-1 py-2.5 rounded-2xl bg-rose-600 text-xs font-bold text-white hover:bg-rose-700 active:scale-95 transition">削除する</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 定期ルール 2択削除安全モーダル (解約 vs 全削除) -->
+  <div id="recurringDeleteModal" onclick="if(event.target === this) closeModal('recurringDeleteModal')" class="hidden fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 select-none">
+    <div onclick="event.stopPropagation()" class="bg-white w-full max-w-sm rounded-3xl p-5 shadow-2xl space-y-3.5 animate-scale-up border border-slate-100">
+      <div class="flex items-start space-x-3 border-b border-slate-100 pb-3">
+        <div class="w-9 h-9 rounded-2xl bg-slate-100 text-slate-700 flex items-center justify-center flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+        </div>
+        <div class="min-w-0 flex-1">
+          <h4 class="text-sm font-extrabold text-slate-800">定期収支ルールの削除方法</h4>
+          <p id="recDeleteTargetTitle" class="text-xs font-bold text-blue-600 truncate mt-0.5">対象項目</p>
+        </div>
+        <button type="button" onclick="closeModal('recurringDeleteModal')" class="text-slate-400 hover:text-slate-600 text-xl leading-none">&times;</button>
+      </div>
+
+      <p class="text-[11px] text-slate-500 leading-relaxed">
+        すでに登録されている明細の扱いを選択してください。
+      </p>
+
+      <div class="space-y-2.5">
+        <!-- 選択肢1：解約（未来の予定のみ取り消す） -->
+        <button type="button" onclick="executeDeleteRecurring('future_only')" class="w-full text-left p-3 rounded-2xl bg-blue-50/70 hover:bg-blue-100/80 border border-blue-200 transition active:scale-[0.99] space-y-1">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-1.5">
+              <svg class="w-4 h-4 text-blue-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <span class="text-xs font-extrabold text-blue-950">解約（未来の予定のみ取り消す）</span>
+            </div>
+            <span class="px-1.5 py-0.2 rounded bg-blue-600 text-white text-[9px] font-extrabold tracking-wide flex-shrink-0">推奨</span>
+          </div>
+          <p class="text-[10.5px] text-slate-600 leading-snug pl-5.5">
+            明日以降の予定明細のみを取り消し、今日までの確定実績明細は帳簿に残します。
+          </p>
+        </button>
+
+        <!-- 選択肢2：すべて削除（過去の実績も全消去） -->
+        <button type="button" onclick="executeDeleteRecurring('all')" class="w-full text-left p-3 rounded-2xl bg-rose-50/70 hover:bg-rose-100/80 border border-rose-200 transition active:scale-[0.99] space-y-1">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-1.5">
+              <svg class="w-4 h-4 text-rose-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              </svg>
+              <span class="text-xs font-extrabold text-rose-950">すべて削除（過去の実績も全消去）</span>
+            </div>
+            <span class="px-1.5 py-0.2 rounded bg-rose-100 text-rose-700 border border-rose-200 text-[9px] font-extrabold flex-shrink-0">誤登録用</span>
+          </div>
+          <p class="text-[10.5px] text-slate-600 leading-snug pl-5.5">
+            このルールから生成された過去〜未来のすべての明細を完全に消去します。
+          </p>
+        </button>
+      </div>
+
+      <div class="pt-1">
+        <button type="button" onclick="closeModal('recurringDeleteModal')" class="w-full py-2.5 rounded-2xl border border-slate-200 text-xs font-bold text-slate-600 hover:bg-slate-50 active:scale-95 transition">
+          キャンセル
+        </button>
       </div>
     </div>
   </div>
@@ -1642,6 +1745,7 @@
     let selectedTxIds = new Set();
     let editingTxId = null;
     let editingRecurringId = null;
+    let pendingDeleteRecurringId = null;
 
     let pieChartInstance = null;
     let trendChartInstance = null;
@@ -1649,7 +1753,7 @@
     let isBudgetExpanded = false;
     let isRankingExpanded = false;
 
-    // スプレッドシート連携用デフォルトURL (ご指定の正しいURL)
+    // スプレッドシート連携用デフォルトURL
     const DEFAULT_GAS_URL = 'https://script.google.com/macros/s/AKfycbz66KpSVO_vpfIpSIDQ81gzxESb45_do4hZI_Rxk07Bz73V_WX6sdQC4x6z5NRINEVN/exec';
     let geminiApiKey = '';
     let gasEndpoint = DEFAULT_GAS_URL;
@@ -1665,8 +1769,7 @@
       setupTrendYearDropdown();
       setupYearMonthDropdownList();
       setupSwipeGesture();
-      cleanupDuplicateRecurringTransactions();
-      checkAndApplyRecurring();
+      syncAllRecurringRules();
       refreshDashboard();
 
       document.addEventListener('click', (e) => {
@@ -1807,7 +1910,7 @@
             { id: 's4', date: `${y}-${m}-04`, type: 'expense', category: '外食（酒あり）', amount: 3800, title: '居酒屋 晩酌', memo: '', paymentMethod: '楽天カード', createdAt: '2026/10/04' }
           ];
           recurringRules = [
-            { id: 'rec_1', day: '1', type: 'income', category: 'お小遣い', amount: 35000, title: '今月のお小遣い', paymentMethod: '口座引落' }
+            { id: 'rec_1', startMonth: `${y}-${m}`, endMonth: '', day: '1', type: 'income', category: 'お小遣い', amount: 35000, title: '今月のお小遣い', paymentMethod: '口座引落' }
           ];
           localStorage.setItem('okozukai_initialized_flag', 'true');
           saveStoredData();
@@ -2140,20 +2243,41 @@
     }
 
     function getFilteredTransactions() {
+      const now = new Date();
       return transactions.filter(t => {
         if (!t.date) return false;
         if (currentFilterMode === 'current_month' || currentFilterMode === 'prev_month' || currentFilterMode === 'month') {
           const prefix = `${activeYear}-${String(activeMonth).padStart(2, '0')}`;
           return t.date.startsWith(prefix);
         }
+        if (currentFilterMode === 'last_3_months') {
+          const start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+          const startStr = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-01`;
+          return t.date >= startStr;
+        }
+        if (currentFilterMode === 'last_6_months') {
+          const start = new Date(now.getFullYear(), now.getMonth() - 5, 1);
+          const startStr = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-01`;
+          return t.date >= startStr;
+        }
+        if (currentFilterMode === 'this_year') {
+          return t.date.startsWith(`${now.getFullYear()}-`);
+        }
         return true;
       });
+    }
+
+    function getPeriodDisplayLabel() {
+      if (currentFilterMode === 'last_3_months') return '直近3ヶ月';
+      if (currentFilterMode === 'last_6_months') return '直近6ヶ月';
+      if (currentFilterMode === 'this_year') return `${new Date().getFullYear()}年`;
+      return `${activeYear}年${activeMonth}月`;
     }
 
     function refreshDashboard() {
       const targetLabel = document.getElementById('targetPeriodDisplay');
       const headerSub = document.getElementById('headerPeriodSub');
-      const text = `${activeYear}年${activeMonth}月`;
+      const text = getPeriodDisplayLabel();
       if (targetLabel) targetLabel.textContent = text;
       if (headerSub) headerSub.textContent = text;
 
@@ -2177,6 +2301,24 @@
 
       const periodNet = periodIncome - periodExpense;
 
+      // 前期比の計算（単月表示時）
+      const prevDate = new Date(activeYear, activeMonth - 2, 1);
+      const prevPrefix = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+      let prevNet = 0;
+      transactions.forEach(t => {
+        if (t.date && t.date.startsWith(prevPrefix)) {
+          const amt = Number(t.amount) || 0;
+          if (t.type === 'income') prevNet += amt;
+          else prevNet -= amt;
+        }
+      });
+      const diff = periodNet - prevNet;
+      const diffEl = document.getElementById('diffVsPrevPeriod');
+      if (diffEl) {
+        const sign = diff > 0 ? '+' : diff < 0 ? '▲' : '±';
+        diffEl.textContent = `（前期比 ${sign}¥${Math.abs(diff).toLocaleString()}）`;
+      }
+
       let totalIncome = 0;
       let totalExpense = 0;
       transactions.forEach(t => {
@@ -2199,11 +2341,12 @@
       document.getElementById('budgetProgressBar').style.width = `${ratio}%`;
 
       renderTransactionsList(filtered);
+      renderRecurringList();
       renderAnalyticsCharts();
     }
 
     function renderTransactionsList(listData = null) {
-      let filtered = listData || getFilteredTransactions();
+      let filtered = listData ? [...listData] : getFilteredTransactions();
       const listEl = document.getElementById('transactionList');
       const emptyEl = document.getElementById('emptyListState');
       const sortOrderVal = document.getElementById('sortOrder')?.value || 'date_desc';
@@ -2225,7 +2368,12 @@
       }
       emptyEl.classList.add('hidden');
 
+      const nowMs = Date.now();
       filtered.sort((a, b) => {
+        const isNewA = Boolean(a.isNewUntil && nowMs < a.isNewUntil);
+        const isNewB = Boolean(b.isNewUntil && nowMs < b.isNewUntil);
+        if (isNewA !== isNewB) return isNewA ? -1 : 1;
+
         if (sortOrderVal === 'date_desc') return new Date(b.date) - new Date(a.date);
         if (sortOrderVal === 'date_asc') return new Date(a.date) - new Date(b.date);
         if (sortOrderVal === 'amount_desc') return Number(b.amount) - Number(a.amount);
@@ -2237,8 +2385,9 @@
 
       filtered.forEach(t => {
         const isSelected = selectedTxIds.has(t.id);
+        const isNew = Boolean(t.isNewUntil && nowMs < t.isNewUntil);
         const card = document.createElement('div');
-        card.className = `p-2.5 rounded-xl border transition flex items-center justify-between cursor-pointer select-none ${isSelected ? 'bg-blue-50 border-blue-300' : 'bg-slate-50 hover:bg-slate-100/80 border-slate-100'}`;
+        card.className = `p-2.5 rounded-xl border transition flex items-center justify-between cursor-pointer select-none ${isSelected ? 'bg-blue-50 border-blue-300' : (isNew ? 'bg-blue-50/40 hover:bg-blue-50/80 border-blue-200/80' : 'bg-slate-50 hover:bg-slate-100/80 border-slate-100')}`;
         card.onclick = () => {
           if (isSelectionMode) toggleItemSelection(t.id);
           else openTransactionDetailModal(t);
@@ -2250,6 +2399,11 @@
         const catIcon = getCategoryIcon(t.category, 'w-4 h-4');
         const payMeta = getPaymentMeta(t.paymentMethod);
         const payIcon = getPaymentMethodIcon(payMeta.type, 'w-3 h-3');
+
+        // NEWバッジ（10分間表示）
+        const newBadge = isNew
+          ? '<span class="px-1.5 py-0.2 rounded bg-blue-600 text-white font-extrabold text-[8px] tracking-wider flex-shrink-0">NEW</span>'
+          : '';
 
         // 収支ピルバッジ
         const typeBadge = isInc
@@ -2269,6 +2423,7 @@
             </div>
             <div class="min-w-0">
               <div class="flex items-center space-x-1.5">
+                ${newBadge}
                 <span class="text-xs font-bold text-slate-800 truncate">${escapeHtml(t.title || t.category)}</span>
                 <span class="text-[9px] font-semibold text-slate-400 font-mono">${displayDate}</span>
               </div>
@@ -2297,6 +2452,7 @@
       document.getElementById('detailAmount').textContent = `¥${(Number(t.amount) || 0).toLocaleString()}`;
       document.getElementById('detailDate').textContent = t.date ? t.date.replace(/-/g, '/') : '';
       document.getElementById('detailCategory').textContent = t.category;
+      document.getElementById('detailPayLabel').textContent = t.type === 'income' ? '入金方法' : '支払い方法';
 
       const pMeta = getPaymentMeta(t.paymentMethod);
       document.getElementById('detailPaymentMethod').innerHTML = `
@@ -2481,56 +2637,78 @@
       refreshDashboard();
     }
 
-    // 既存の定期明細との紐付け補正および重複データの自動クリーンアップ
-    function cleanupDuplicateRecurringTransactions() {
+    function getCurrentMonthString() {
       const now = new Date();
-      const curYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-
-      recurringRules.forEach(rule => {
-        // 当月内の該当定期ルールに関連する明細をすべて集める
-        const matched = transactions.filter(t => {
-          if (!t.date || !t.date.startsWith(curYM)) return false;
-          if (t.recurringId && t.recurringId === rule.id) return true;
-          return (t.title === rule.title || (t.memo && t.memo.includes('定期収支') && t.category === rule.category));
-        });
-
-        // 該当明細が2件以上重複している場合、1件だけ残して古い余分な明細を削除
-        if (matched.length > 1) {
-          const keepItem = matched[0]; // 最新の1件を保持
-          keepItem.recurringId = rule.id;
-          const removeIds = matched.slice(1).map(m => m.id);
-          transactions = transactions.filter(t => !removeIds.includes(t.id));
-        } else if (matched.length === 1) {
-          matched[0].recurringId = rule.id;
-        }
-      });
-      saveStoredData();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
     }
 
-    function checkAndApplyRecurring() {
+    // 確定性IDによる「過去遡り一括投影」＆「二重登録の完全防止」
+    function syncAllRecurringRules(targetRuleId = null, markNewAllMonths = false) {
       const now = new Date();
-      const curY = now.getFullYear();
-      const curM = now.getMonth() + 1;
-      const curYM = `${curY}-${String(curM).padStart(2, '0')}`;
-      const curD = now.getDate();
-      const lastDay = new Date(curY, curM, 0).getDate();
+      const nowYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+      const newExpireTimestamp = Date.now() + 10 * 60 * 1000;
 
+      // 1. 従来のランダムIDで作成された重複・旧形式明細を確定性IDへ自動統合・クリーンアップ
       recurringRules.forEach(rule => {
-        const targetDay = rule.day === 'last' ? lastDay : Math.min(Number(rule.day) || 1, lastDay);
-        if (curD >= targetDay) {
-          const dateStr = `${curYM}-${String(targetDay).padStart(2, '0')}`;
-          
-          // 【厳格な二重作成ブロック】
-          // 日付に関わらず、当月内にすでにこの定期ルールの明細が存在していれば新規作成を絶対に行わない
-          const exists = transactions.some(t => {
-            if (!t.date || !t.date.startsWith(curYM)) return false;
-            if (t.recurringId && t.recurringId === rule.id) return true;
-            return t.title === rule.title && t.category === rule.category;
-          });
+        if (!rule.startMonth) {
+          rule.startMonth = nowYM;
+        }
+        const relatedLegacy = transactions.filter(t => {
+          if (!t.date) return false;
+          const ym = t.date.slice(0, 7);
+          const expectedId = `tx_rec_${rule.id}_${ym}`;
+          if (t.id === expectedId) return false;
+          if (t.recurringId && t.recurringId === rule.id) return true;
+          return Boolean(t.memo && t.memo.includes('定期収支') && t.title === rule.title && t.category === rule.category);
+        });
 
-          if (!exists) {
-            transactions.unshift({
-              id: `tx_rec_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+        if (relatedLegacy.length > 0) {
+          const removeIds = new Set(relatedLegacy.map(t => t.id));
+          transactions = transactions.filter(t => !removeIds.has(t.id));
+        }
+      });
+
+      // 2. 各ルールについて開始月から当月（または終了月）まで1ヶ月ずつ確定性IDで生成・同期
+      const targetRules = targetRuleId
+        ? recurringRules.filter(r => r.id === targetRuleId)
+        : recurringRules;
+
+      targetRules.forEach(rule => {
+        const startYM = rule.startMonth || nowYM;
+        let endLimitYM = rule.endMonth ? rule.endMonth : nowYM;
+
+        if (startYM > endLimitYM) return;
+
+        const [startY, startM] = startYM.split('-').map(Number);
+        const [endY, endM] = endLimitYM.split('-').map(Number);
+
+        let curY = startY;
+        let curM = startM;
+        let safetyCounter = 0;
+
+        while ((curY < endY || (curY === endY && curM <= endM)) && safetyCounter < 120) {
+          safetyCounter++;
+          const ymStr = `${curY}-${String(curM).padStart(2, '0')}`;
+          const lastDayOfMonth = new Date(curY, curM, 0).getDate();
+          const targetDay = rule.day === 'last' ? lastDayOfMonth : Math.min(Number(rule.day) || 1, lastDayOfMonth);
+          const dateStr = `${ymStr}-${String(targetDay).padStart(2, '0')}`;
+          const deterministicId = `tx_rec_${rule.id}_${ymStr}`;
+
+          const existingTx = transactions.find(t => t.id === deterministicId);
+          if (existingTx) {
+            existingTx.recurringId = rule.id;
+            existingTx.date = dateStr;
+            existingTx.type = rule.type;
+            existingTx.category = rule.category;
+            existingTx.paymentMethod = rule.paymentMethod || '口座引落';
+            existingTx.amount = Number(rule.amount);
+            existingTx.title = rule.title;
+            if (markNewAllMonths) {
+              existingTx.isNewUntil = newExpireTimestamp;
+            }
+          } else {
+            const newTx = {
+              id: deterministicId,
               recurringId: rule.id,
               date: dateStr,
               type: rule.type,
@@ -2540,56 +2718,68 @@
               title: rule.title,
               memo: '毎月の定期収支 (自動登録)',
               createdAt: new Date().toLocaleString('ja-JP')
-            });
+            };
+            if (markNewAllMonths) {
+              newTx.isNewUntil = newExpireTimestamp;
+            }
+            transactions.unshift(newTx);
+          }
+
+          curM++;
+          if (curM > 12) {
+            curM = 1;
+            curY++;
           }
         }
       });
+
       saveStoredData();
     }
 
-    function openRecurringModal(ruleId = null) {
-      editingRecurringId = ruleId;
-      const titleEl = document.getElementById('recurringModalTitle');
-      const delArea = document.getElementById('recModalDeleteArea');
-
-      if (ruleId) {
-        const rule = recurringRules.find(r => r.id === ruleId);
-        if (!rule) return;
-        if (titleEl) titleEl.textContent = '定期ルールの編集';
-        setRecurringType(rule.type || 'expense');
-        document.getElementById('recDay').value = rule.day || '1';
-        document.getElementById('recTitle').value = rule.title || '';
-        document.getElementById('recAmount').value = rule.amount || '';
-        document.getElementById('recCategory').value = rule.category || '';
-        chooseRecPaymentMethod(rule.paymentMethod || '口座引落');
-        if (delArea) delArea.classList.remove('hidden');
+    function updateRecStartMonthDisplay() {
+      const inputEl = document.getElementById('recStartMonth');
+      const textEl = document.getElementById('recStartMonthDisplayText');
+      if (!inputEl || !textEl) return;
+      const val = inputEl.value;
+      if (val && val.includes('-')) {
+        const [y, m] = val.split('-');
+        textEl.textContent = `${y}年${Number(m)}月`;
       } else {
-        if (titleEl) titleEl.textContent = '定期設定';
-        setRecurringType('expense');
-        document.getElementById('recDay').value = '1';
-        document.getElementById('recTitle').value = '';
-        document.getElementById('recAmount').value = '';
-        chooseRecPaymentMethod(currentRecurringType === 'income' ? '口座引落' : '口座引落');
-        if (delArea) delArea.classList.add('hidden');
+        const now = new Date();
+        textEl.textContent = `${now.getFullYear()}年${now.getMonth() + 1}月`;
       }
-      openModal('recurringModal');
+    }
+
+    function updateRecEndMonthDisplay() {
+      const inputEl = document.getElementById('recEndMonth');
+      const textEl = document.getElementById('recEndMonthDisplayText');
+      const clearBtn = document.getElementById('btnClearRecEndMonth');
+      if (!inputEl || !textEl) return;
+      const val = inputEl.value;
+      if (val && val.includes('-')) {
+        const [y, m] = val.split('-');
+        textEl.textContent = `${y}年${Number(m)}月`;
+        textEl.className = 'text-xs font-semibold text-slate-800 truncate pointer-events-none select-none';
+        if (clearBtn) clearBtn.classList.remove('hidden');
+      } else {
+        textEl.textContent = '期限なし';
+        textEl.className = 'text-xs font-semibold text-slate-400 truncate pointer-events-none select-none';
+        if (clearBtn) clearBtn.classList.add('hidden');
+      }
+    }
+
+    function clearRecEndMonth() {
+      const inputEl = document.getElementById('recEndMonth');
+      if (inputEl) inputEl.value = '';
+      updateRecEndMonthDisplay();
     }
 
     function setRecurringType(type) {
       currentRecurringType = type;
-      const btnExp = document.getElementById('btnRecTypeExpense');
-      const btnInc = document.getElementById('btnRecTypeIncome');
-      if (btnExp) {
-        btnExp.className = type === 'expense' ? 'py-1.5 rounded-lg bg-white text-rose-600 shadow-xs transition' : 'py-1.5 rounded-lg text-slate-600 transition';
-      }
-      if (btnInc) {
-        btnInc.className = type === 'income' ? 'py-1.5 rounded-lg bg-white text-emerald-600 shadow-xs transition' : 'py-1.5 rounded-lg text-slate-600 transition';
-      }
-
       const catSelect = document.getElementById('recCategory');
       if (catSelect) {
         catSelect.innerHTML = '';
-        const list = type === 'expense' ? fixedExpenseCategories : incomeCategories;
+        const list = type === 'expense' ? [...fixedExpenseCategories, ...variableExpenseCategories] : incomeCategories;
         list.forEach(c => {
           const opt = document.createElement('option');
           opt.value = c;
@@ -2598,238 +2788,227 @@
         });
       }
 
+      const btnExp = document.getElementById('btnRecTypeExpense');
+      const btnInc = document.getElementById('btnRecTypeIncome');
+      if (btnExp) btnExp.className = type === 'expense' ? 'py-1.5 rounded-lg bg-white text-rose-600 shadow-xs transition' : 'py-1.5 rounded-lg text-slate-600 transition';
+      if (btnInc) btnInc.className = type === 'income' ? 'py-1.5 rounded-lg bg-white text-emerald-600 shadow-xs transition' : 'py-1.5 rounded-lg text-slate-600 transition';
+
       const payLabel = document.getElementById('recPayMethodLabel');
       if (payLabel) payLabel.textContent = type === 'income' ? '入金方法' : '支払い方法';
 
-      chooseRecPaymentMethod(type === 'income' ? '口座引落' : '口座引落');
+      chooseRecPaymentMethod('口座引落');
+    }
+
+    function openRecurringModal(ruleId = null) {
+      editingRecurringId = ruleId;
+      const titleEl = document.getElementById('recurringModalTitle');
+      const saveBtn = document.getElementById('btnSaveRecurring');
+      const delArea = document.getElementById('recModalDeleteArea');
+      const curYM = getCurrentMonthString();
+
+      if (ruleId) {
+        const rule = recurringRules.find(r => r.id === ruleId);
+        if (!rule) return;
+        if (titleEl) titleEl.textContent = '定期収支の編集';
+        if (saveBtn) saveBtn.textContent = '変更を保存';
+        setRecurringType(rule.type || 'expense');
+        document.getElementById('recStartMonth').value = rule.startMonth || curYM;
+        updateRecStartMonthDisplay();
+        document.getElementById('recEndMonth').value = rule.endMonth || '';
+        updateRecEndMonthDisplay();
+        document.getElementById('recDay').value = rule.day || '1';
+        document.getElementById('recTitle').value = rule.title || '';
+        document.getElementById('recAmount').value = rule.amount || '';
+
+        const catSel = document.getElementById('recCategory');
+        if (catSel && rule.category) {
+          const hasOption = Array.from(catSel.options).some(opt => opt.value === rule.category);
+          if (!hasOption) {
+            const extraOpt = document.createElement('option');
+            extraOpt.value = rule.category;
+            extraOpt.textContent = rule.category;
+            catSel.appendChild(extraOpt);
+          }
+          catSel.value = rule.category;
+        }
+
+        chooseRecPaymentMethod(rule.paymentMethod || '口座引落');
+        if (delArea) delArea.classList.remove('hidden');
+      } else {
+        if (titleEl) titleEl.textContent = '定期収支の設定';
+        if (saveBtn) saveBtn.textContent = 'この内容で登録';
+        setRecurringType('expense');
+        document.getElementById('recStartMonth').value = curYM;
+        updateRecStartMonthDisplay();
+        document.getElementById('recEndMonth').value = '';
+        updateRecEndMonthDisplay();
+        document.getElementById('recDay').value = '1';
+        document.getElementById('recTitle').value = '';
+        document.getElementById('recAmount').value = '';
+        chooseRecPaymentMethod('口座引落');
+        if (delArea) delArea.classList.add('hidden');
+      }
+      openModal('recurringModal');
     }
 
     function saveRecurringRule() {
+      const startMonth = document.getElementById('recStartMonth').value || getCurrentMonthString();
+      const endMonth = document.getElementById('recEndMonth').value || '';
       const day = document.getElementById('recDay').value;
       const title = document.getElementById('recTitle').value.trim();
       const amount = Number(document.getElementById('recAmount').value);
       const category = document.getElementById('recCategory').value;
-      const paymentMethod = document.getElementById('recPaymentMethod').value;
+      const paymentMethod = document.getElementById('recPaymentMethod').value || '口座引落';
 
       if (!title || isNaN(amount) || amount <= 0) {
-        showToast('タイトルと金額を入力してください', true);
+        showToast('項目名と有効な金額を入力してください', true);
         return;
       }
 
-      const now = new Date();
-      const curYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-      const targetDayNum = day === 'last' ? lastDay : Math.min(Number(day) || 1, lastDay);
-      const newDateStr = `${curYM}-${String(targetDayNum).padStart(2, '0')}`;
+      if (endMonth && startMonth > endMonth) {
+        showToast('終了月は開始月以降を指定してください', true);
+        return;
+      }
 
+      let targetId = '';
       if (editingRecurringId) {
         const rule = recurringRules.find(r => r.id === editingRecurringId);
         if (rule) {
-          const oldTitle = rule.title;
+          rule.startMonth = startMonth;
+          rule.endMonth = endMonth;
           rule.day = day;
           rule.type = currentRecurringType;
           rule.category = category;
-          rule.paymentMethod = paymentMethod;
           rule.amount = amount;
           rule.title = title;
+          rule.paymentMethod = paymentMethod;
+          targetId = rule.id;
 
-          // 当月内の明細から、該当定期の明細をすべて探す
-          const matchedList = transactions.filter(t => {
-            if (!t.date || !t.date.startsWith(curYM)) return false;
-            if (t.recurringId && t.recurringId === editingRecurringId) return true;
-            return t.title === oldTitle || (t.title === title && t.category === category);
-          });
-
-          if (matchedList.length > 0) {
-            // 最初の1件を新しい日付・金額・内容へ確実に上書き更新
-            const targetTx = matchedList[0];
-            targetTx.recurringId = editingRecurringId;
-            targetTx.date = newDateStr;
-            targetTx.type = currentRecurringType;
-            targetTx.category = category;
-            targetTx.paymentMethod = paymentMethod;
-            targetTx.amount = amount;
-            targetTx.title = title;
-
-            // もし過去のバグで2件目以降の重複が存在していたら自動削除
-            if (matchedList.length > 1) {
-              const extraIds = matchedList.slice(1).map(m => m.id);
-              transactions = transactions.filter(t => !extraIds.includes(t.id));
-            }
-          }
+          // 編集時は既存明細を全洗い替え（クリーンアップ）して新設定で全月分再生成
+          transactions = transactions.filter(t => t.recurringId !== rule.id);
         }
         editingRecurringId = null;
-        showToast('定期ルールと当月明細を上書き更新しました');
+        showToast('定期ルールと期間内の明細を上書き更新しました');
       } else {
-        const newRuleId = `rec_${Date.now()}`;
+        targetId = `rec_${Date.now()}`;
         recurringRules.push({
-          id: newRuleId,
+          id: targetId,
+          startMonth,
+          endMonth,
           day,
           type: currentRecurringType,
           category,
-          paymentMethod,
           amount,
-          title
+          title,
+          paymentMethod
         });
-        showToast('定期ルールを保存しました');
+        showToast('定期ルールを保存し、明細を反映しました');
       }
 
-      saveStoredData();
       closeModal('recurringModal');
-      renderRecurringList();
-      checkAndApplyRecurring();
+      syncAllRecurringRules(targetId, true);
       refreshDashboard();
     }
 
     function deleteRecurringInModal() {
       if (!editingRecurringId) return;
-      const rule = recurringRules.find(r => r.id === editingRecurringId);
-      const title = rule ? rule.title : 'この定期ルール';
+      const ruleId = editingRecurringId;
       closeModal('recurringModal');
-      triggerDeleteConfirmation(
-        '定期ルールを削除しますか？',
-        `定期設定「${title}」を削除します。（※すでに登録済みの明細はそのまま残ります）`,
-        () => {
-          deleteRecurringRule(editingRecurringId);
-          editingRecurringId = null;
-        }
-      );
+      openRecurringDeleteModal(ruleId);
     }
 
-    function promptDeleteRecurringRule(id) {
-      const rule = recurringRules.find(r => r.id === id);
-      const title = rule ? rule.title : 'この定期ルール';
-      triggerDeleteConfirmation(
-        '定期ルールを削除しますか？',
-        `定期設定「${title}」を削除します。本当によろしいですか？`,
-        () => deleteRecurringRule(id)
-      );
+    function openRecurringDeleteModal(ruleId) {
+      const rule = recurringRules.find(r => r.id === ruleId);
+      if (!rule) return;
+      pendingDeleteRecurringId = ruleId;
+      const titleEl = document.getElementById('recDeleteTargetTitle');
+      if (titleEl) {
+        titleEl.textContent = `「${rule.title}」(¥${Number(rule.amount).toLocaleString()})`;
+      }
+      openModal('recurringDeleteModal');
+    }
+
+    function executeDeleteRecurring(mode) {
+      if (!pendingDeleteRecurringId) return;
+      const ruleId = pendingDeleteRecurringId;
+      const today = getTodayString();
+
+      if (mode === 'future_only') {
+        transactions = transactions.filter(t => !(t.recurringId === ruleId && t.date > today));
+        showToast('定期ルールを解約しました（今日までの実績は保持）');
+      } else if (mode === 'all') {
+        transactions = transactions.filter(t => t.recurringId !== ruleId);
+        showToast('定期ルールと関連する全明細を削除しました');
+      }
+
+      recurringRules = recurringRules.filter(r => r.id !== ruleId);
+      pendingDeleteRecurringId = null;
+      saveStoredData();
+      closeModal('recurringDeleteModal');
+      refreshDashboard();
     }
 
     function renderRecurringList() {
       const listEl = document.getElementById('recurringList');
       const emptyEl = document.getElementById('recurringEmpty');
-      if (!listEl) return;
-      listEl.innerHTML = '';
+      if (!listEl || !emptyEl) return;
 
+      listEl.innerHTML = '';
       if (recurringRules.length === 0) {
-        emptyEl?.classList.remove('hidden');
+        emptyEl.classList.remove('hidden');
         return;
       }
-      emptyEl?.classList.add('hidden');
+      emptyEl.classList.add('hidden');
 
       recurringRules.forEach(rule => {
         const card = document.createElement('div');
         card.className = 'p-3 bg-slate-50 hover:bg-slate-100/90 rounded-2xl border border-slate-100 flex items-center justify-between text-xs cursor-pointer active:scale-[0.99] transition select-none';
         card.onclick = () => openRecurringModal(rule.id);
 
+        const startDisp = rule.startMonth ? rule.startMonth.replace('-', '/') : '';
+        const endDisp = rule.endMonth ? rule.endMonth.replace('-', '/') : '';
+        const periodBadge = startDisp
+          ? `<span class="px-1.5 py-0.2 rounded bg-blue-50 text-blue-700 border border-blue-200/70 text-[8.5px] font-mono font-bold">${startDisp}〜${endDisp}</span>`
+          : '';
+
         card.innerHTML = `
           <div class="min-w-0 pr-2">
-            <div class="flex items-center space-x-1.5 mb-0.5">
+            <div class="flex items-center flex-wrap gap-1 mb-0.5">
               <span class="px-1.5 py-0.2 bg-white border border-slate-200 rounded text-[9px] font-bold">毎月${rule.day === 'last' ? '月末' : rule.day + '日'}</span>
-              <span class="text-slate-400 font-semibold text-[10px]">${rule.category}</span>
+              ${periodBadge}
+              <span class="text-slate-400 font-semibold text-[10px]">${escapeHtml(rule.category)}</span>
               ${rule.paymentMethod ? `<span class="px-1 py-0.2 rounded bg-slate-100 text-slate-500 text-[8px]">${escapeHtml(rule.paymentMethod)}</span>` : ''}
             </div>
             <p class="font-extrabold text-slate-800 text-xs truncate">${escapeHtml(rule.title)}</p>
           </div>
-          <div class="flex items-center space-x-2 flex-shrink-0">
+          <div class="flex items-center space-x-1.5 flex-shrink-0">
             <span class="font-black font-mono ${rule.type === 'income' ? 'text-emerald-700' : 'text-rose-700'}">¥${Number(rule.amount).toLocaleString()}</span>
-            <button type="button" onclick="event.stopPropagation(); promptDeleteRecurringRule('${rule.id}')" class="text-slate-400 hover:text-rose-600 p-1 font-bold text-sm leading-none transition" title="削除">&times;</button>
+            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.2" d="M9 5l7 7-7 7"/>
+            </svg>
           </div>
         `;
         listEl.appendChild(card);
       });
     }
 
-    function deleteRecurringRule(id) {
-      recurringRules = recurringRules.filter(r => r.id !== id);
-      saveStoredData();
-      renderRecurringList();
-      showToast('定期ルールを削除しました');
-    }
-
-    // 汎用：削除二重確認モーダルを開く関数
-    function triggerDeleteConfirmation(title, message, onConfirm) {
-      const titleEl = document.getElementById('deleteConfirmTitle');
-      const msgEl = document.getElementById('deleteConfirmMessage');
-      const execBtn = document.getElementById('btnExecuteDelete');
-      
-      if (titleEl) titleEl.textContent = title || '削除しますか？';
-      if (msgEl) msgEl.textContent = message || '選択された項目を完全に削除します。';
-      if (execBtn) {
-        execBtn.textContent = '削除する';
-        execBtn.onclick = () => {
-          closeModal('deleteConfirmModal');
-          if (typeof onConfirm === 'function') onConfirm();
-        };
-      }
-      openModal('deleteConfirmModal');
-    }
-
-    function confirmResetAllData() {
-      triggerDeleteConfirmation(
-        '全データを初期化しますか？',
-        '明細データと定期設定をすべて削除します。（※APIキー、スプシURL、支払い方法は保護されます）',
-        () => {
-          transactions = [];
-          recurringRules = [];
-          saveStoredData();
-          closeModal('settingsModal');
-          refreshDashboard();
-          renderRecurringList();
-          showToast('データを初期化しました');
-        }
-      );
-      const execBtn = document.getElementById('btnExecuteDelete');
-      if (execBtn) execBtn.textContent = '初期化する';
-    }
-
-    function openBudgetModal() {
-      document.getElementById('inputMonthlyBudget').value = monthlyBudget;
-      openModal('budgetModal');
-    }
-
-    function saveMonthlyBudget() {
-      const val = Number(document.getElementById('inputMonthlyBudget').value);
-      if (!isNaN(val) && val > 0) {
-        monthlyBudget = val;
-        saveStoredData();
-        refreshDashboard();
-        closeModal('budgetModal');
-        showToast('予算を保存しました');
-      }
-    }
+    // ==================== 分析・グラフ機能 ====================
 
     function setupTrendYearDropdown() {
-      const sel = document.getElementById('trendYearSelect');
-      if (!sel) return;
-      sel.innerHTML = '';
-      const currentYear = new Date().getFullYear();
-      for (let y = currentYear; y >= currentYear - 4; y--) {
+      const yearSel = document.getElementById('trendYearSelect');
+      const monthSel = document.getElementById('trendMonthSelect');
+      if (!yearSel || !monthSel) return;
+
+      const nowY = new Date().getFullYear();
+      yearSel.innerHTML = '';
+      for (let y = nowY - 3; y <= nowY + 1; y++) {
         const opt = document.createElement('option');
         opt.value = y;
         opt.textContent = `${y}年`;
         if (y === analyticsYear) opt.selected = true;
-        sel.appendChild(opt);
+        yearSel.appendChild(opt);
       }
-      const monthSel = document.getElementById('trendMonthSelect');
-      if (monthSel) monthSel.value = String(analyticsMonth);
-    }
-
-    function setAnalyticsTrendYear(year) {
-      if (!year) return;
-      analyticsYear = Number(year);
-      currentTrendPeriod = '1m';
-      updateTrendPeriodButtonsUI();
-      renderAnalyticsCharts();
-    }
-
-    function setAnalyticsTrendMonth(month) {
-      if (!month) return;
-      analyticsMonth = Number(month);
-      currentTrendPeriod = '1m';
-      updateTrendPeriodButtonsUI();
-      renderAnalyticsCharts();
+      monthSel.value = analyticsMonth;
     }
 
     function resetAnalyticsToCurrentMonth() {
@@ -2837,276 +3016,239 @@
       analyticsYear = now.getFullYear();
       analyticsMonth = now.getMonth() + 1;
       currentTrendPeriod = '1m';
-      const sel = document.getElementById('trendYearSelect');
-      if (sel) sel.value = String(analyticsYear);
-      const mSel = document.getElementById('trendMonthSelect');
-      if (mSel) mSel.value = String(analyticsMonth);
-      updateTrendPeriodButtonsUI();
+      setupTrendYearDropdown();
+      updateAnalyticsControlUI();
       renderAnalyticsCharts();
-      showToast(`${analyticsYear}年${analyticsMonth}月 (当月) に戻りました`);
     }
 
-    function setAnalyticsTrendPeriod(period) {
-      currentTrendPeriod = period;
-      if (period === '1m') {
-        const now = new Date();
-        analyticsYear = now.getFullYear();
-        analyticsMonth = now.getMonth() + 1;
-        const sel = document.getElementById('trendYearSelect');
-        if (sel) sel.value = String(analyticsYear);
-        const mSel = document.getElementById('trendMonthSelect');
-        if (mSel) mSel.value = String(analyticsMonth);
-      }
-      updateTrendPeriodButtonsUI();
+    function setAnalyticsTrendYear(val) {
+      analyticsYear = Number(val);
+      updateAnalyticsControlUI();
+      renderAnalyticsCharts();
+    }
+
+    function setAnalyticsTrendMonth(val) {
+      analyticsMonth = Number(val);
+      updateAnalyticsControlUI();
       renderAnalyticsCharts();
     }
 
     function shiftAnalyticsMonth(delta) {
-      let d = new Date(analyticsYear, analyticsMonth - 1 + delta, 1);
+      const d = new Date(analyticsYear, analyticsMonth - 1 + delta, 1);
       analyticsYear = d.getFullYear();
       analyticsMonth = d.getMonth() + 1;
-      currentTrendPeriod = '1m';
-      const sel = document.getElementById('trendYearSelect');
-      if (sel) sel.value = String(analyticsYear);
-      const mSel = document.getElementById('trendMonthSelect');
-      if (mSel) mSel.value = String(analyticsMonth);
-      updateTrendPeriodButtonsUI();
+      setupTrendYearDropdown();
+      updateAnalyticsControlUI();
+      renderAnalyticsCharts();
+    }
+
+    function setAnalyticsTrendPeriod(period) {
+      currentTrendPeriod = period;
+      updateAnalyticsControlUI();
       renderAnalyticsCharts();
     }
 
     function openTrendCustomDateModal() {
-      document.getElementById('trendCustomStartDate').value = trendCustomDateRange.start || getTodayString();
-      document.getElementById('trendCustomEndDate').value = trendCustomDateRange.end || getTodayString();
+      const startInput = document.getElementById('trendCustomStartDate');
+      const endInput = document.getElementById('trendCustomEndDate');
+      if (startInput && endInput) {
+        const ym = `${analyticsYear}-${String(analyticsMonth).padStart(2, '0')}`;
+        const lastD = new Date(analyticsYear, analyticsMonth, 0).getDate();
+        startInput.value = trendCustomDateRange.start || `${ym}-01`;
+        endInput.value = trendCustomDateRange.end || `${ym}-${String(lastD).padStart(2, '0')}`;
+      }
       openModal('trendCustomDateModal');
     }
 
     function applyTrendCustomDateRange() {
-      const start = document.getElementById('trendCustomStartDate').value;
-      const end = document.getElementById('trendCustomEndDate').value;
-      if (!start || !end || start > end) {
-        showToast('有効な期間を指定してください', true);
+      const s = document.getElementById('trendCustomStartDate')?.value;
+      const e = document.getElementById('trendCustomEndDate')?.value;
+      if (!s || !e) {
+        showToast('開始日と終了日を指定してください', true);
         return;
       }
-      trendCustomDateRange = { start, end };
+      if (s > e) {
+        showToast('終了日は開始日以降を指定してください', true);
+        return;
+      }
+      trendCustomDateRange = { start: s, end: e };
       currentTrendPeriod = 'custom';
       closeModal('trendCustomDateModal');
-      const customTextEl = document.getElementById('trendCustomBtnText');
-      if (customTextEl) customTextEl.textContent = `${start.slice(5).replace('-', '/')}〜${end.slice(5).replace('-', '/')}`;
-      updateTrendPeriodButtonsUI();
+      updateAnalyticsControlUI();
       renderAnalyticsCharts();
-    }
-
-    function updateTrendPeriodButtonsUI() {
-      const btn1m = document.getElementById('btnTrend1m');
-      const btn3m = document.getElementById('btnTrend3m');
-      const btn6m = document.getElementById('btnTrend6m');
-      const btn12m = document.getElementById('btnTrend12m');
-      const btnAll = document.getElementById('btnTrendAll');
-      const btnCustom = document.getElementById('btnTrendCustom');
-      const labelDisplay = document.getElementById('trendPeriodLabelDisplay');
-      const monthNav = document.getElementById('analyticsMonthNavigator');
-      const monthTitle = document.getElementById('analyticsMonthTitle');
-
-      const inactiveClass = 'px-2.5 py-1 rounded-xl text-[10px] font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap';
-      const activeClass = 'px-2.5 py-1 rounded-xl text-[10px] font-bold bg-white text-blue-600 shadow-xs border border-blue-200 transition whitespace-nowrap';
-
-      [btn1m, btn3m, btn6m, btn12m, btnAll, btnCustom].forEach(btn => { if (btn) btn.className = inactiveClass; });
-
-      if (monthNav) {
-        monthNav.classList.toggle('hidden', currentTrendPeriod !== '1m');
-      }
-
-      let text = '当月';
-      if (currentTrendPeriod === '1m') {
-        if (btn1m) btn1m.className = activeClass;
-        text = '1ヶ月';
-        if (monthTitle) monthTitle.textContent = `${analyticsYear}年${analyticsMonth}月`;
-      } else if (currentTrendPeriod === '3m') {
-        if (btn3m) btn3m.className = activeClass;
-        text = '直近3ヶ月';
-      } else if (currentTrendPeriod === '6m') {
-        if (btn6m) btn6m.className = activeClass;
-        text = '直近6ヶ月';
-      } else if (currentTrendPeriod === '12m') {
-        if (btn12m) btn12m.className = activeClass;
-        text = '直近12ヶ月';
-      } else if (currentTrendPeriod === 'all') {
-        if (btnAll) btnAll.className = activeClass;
-        text = '全期間';
-      } else if (currentTrendPeriod === 'custom') {
-        if (btnCustom) btnCustom.className = activeClass;
-        text = `${trendCustomDateRange.start.slice(5).replace('-', '/')}〜${trendCustomDateRange.end.slice(5).replace('-', '/')}`;
-      }
-
-      if (labelDisplay) labelDisplay.textContent = text;
-    }
-
-    function getAnalyticsPeriodLabelString() {
-      if (currentTrendPeriod === '1m') {
-        return `${analyticsYear}年${analyticsMonth}月`;
-      } else if (currentTrendPeriod === '3m') {
-        return '直近3ヶ月';
-      } else if (currentTrendPeriod === '6m') {
-        return '直近6ヶ月';
-      } else if (currentTrendPeriod === '12m') {
-        return '直近12ヶ月';
-      } else if (currentTrendPeriod === 'all') {
-        return '全期間';
-      } else if (currentTrendPeriod === 'custom' && trendCustomDateRange.start && trendCustomDateRange.end) {
-        return `${trendCustomDateRange.start.slice(5).replace('-', '/')}〜${trendCustomDateRange.end.slice(5).replace('-', '/')}`;
-      }
-      return `${analyticsYear}年${analyticsMonth}月`;
-    }
-
-    function updateAnalyticsPeriodBadges() {
-      const periodStr = getAnalyticsPeriodLabelString();
-      const pieBadge = document.getElementById('pieChartPeriodBadge');
-      const trendBadge = document.getElementById('trendChartPeriodBadge');
-
-      if (pieBadge) pieBadge.textContent = periodStr;
-      if (trendBadge) {
-        const modeSuffix = currentTrendPeriod === '1m' ? ' (日別)' : ' (月別)';
-        trendBadge.textContent = periodStr + (currentTrendPeriod === '1m' ? modeSuffix : '');
-      }
     }
 
     function setPieDimension(dim) {
       pieDimension = dim;
-      const btnCat = document.getElementById('btnPieDimCat');
-      const btnPay = document.getElementById('btnPieDimPay');
-      const title = document.getElementById('pieChartTitleDisplay');
-
-      const activeClass = 'px-2.5 py-0.5 rounded-lg bg-white text-blue-600 shadow-2xs transition';
-      const inactiveClass = 'px-2.5 py-0.5 rounded-lg text-slate-500 hover:text-slate-800 transition';
-
-      if (btnCat) btnCat.className = dim === 'category' ? activeClass : inactiveClass;
-      if (btnPay) btnPay.className = dim === 'payment' ? activeClass : inactiveClass;
-      if (title) title.textContent = dim === 'category' ? '科目別 支出内訳' : '支払別 支出内訳';
-
-      renderPieChart();
+      const catBtn = document.getElementById('btnPieDimCat');
+      const payBtn = document.getElementById('btnPieDimPay');
+      const titleEl = document.getElementById('pieChartTitleDisplay');
+      if (catBtn && payBtn) {
+        catBtn.className = dim === 'category'
+          ? 'px-2.5 py-0.5 rounded-lg bg-white text-blue-600 shadow-2xs transition'
+          : 'px-2.5 py-0.5 rounded-lg text-slate-500 hover:text-slate-800 transition';
+        payBtn.className = dim === 'payment'
+          ? 'px-2.5 py-0.5 rounded-lg bg-white text-blue-600 shadow-2xs transition'
+          : 'px-2.5 py-0.5 rounded-lg text-slate-500 hover:text-slate-800 transition';
+      }
+      if (titleEl) {
+        titleEl.textContent = dim === 'category' ? '科目別 支出内訳' : '支払別 支出内訳';
+      }
+      renderAnalyticsCharts();
     }
 
     function setAnalyticsGraphMode(mode) {
       currentTrendGraphMode = mode;
-      const activeClass = 'flex-1 py-1 rounded-xl bg-white text-blue-600 shadow-xs transition text-center';
-      const inactiveClass = 'flex-1 py-1 rounded-xl text-slate-500 hover:text-slate-800 transition text-center';
-      document.getElementById('btnGraphModeDiff').className = mode === 'diff' ? activeClass : inactiveClass;
-      document.getElementById('btnGraphModeBoth').className = mode === 'both' ? activeClass : inactiveClass;
-      document.getElementById('btnGraphModeFixedVar').className = mode === 'fixed_variable' ? activeClass : inactiveClass;
+      const active = 'flex-1 py-1 rounded-xl bg-white text-blue-600 shadow-xs transition text-center';
+      const inactive = 'flex-1 py-1 rounded-xl text-slate-500 hover:text-slate-800 transition text-center';
+      document.getElementById('btnGraphModeDiff').className = mode === 'diff' ? active : inactive;
+      document.getElementById('btnGraphModeBoth').className = mode === 'both' ? active : inactive;
+      document.getElementById('btnGraphModeFixedVar').className = mode === 'fixed_variable' ? active : inactive;
       renderTrendChart();
     }
 
+    function updateAnalyticsControlUI() {
+      const activePill = 'px-2.5 py-1 rounded-xl text-[10px] font-bold bg-white text-blue-600 shadow-xs border border-blue-200 transition whitespace-nowrap';
+      const inactivePill = 'px-2.5 py-1 rounded-xl text-[10px] font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition whitespace-nowrap';
+
+      ['1m', '3m', '6m', '12m', 'all'].forEach(p => {
+        const btn = document.getElementById(`btnTrend${p}`);
+        if (btn) btn.className = currentTrendPeriod === p ? activePill : inactivePill;
+      });
+
+      const customBtn = document.getElementById('btnTrendCustom');
+      const customText = document.getElementById('trendCustomBtnText');
+      if (customBtn) {
+        customBtn.className = currentTrendPeriod === 'custom'
+          ? 'px-2.5 py-1 rounded-xl text-[10px] font-bold bg-white text-blue-600 shadow-xs border border-blue-200 flex items-center space-x-1 transition whitespace-nowrap'
+          : 'px-2.5 py-1 rounded-xl text-[10px] font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 flex items-center space-x-1 transition whitespace-nowrap';
+      }
+      if (customText) {
+        customText.textContent = (currentTrendPeriod === 'custom' && trendCustomDateRange.start)
+          ? `${trendCustomDateRange.start.slice(5)}〜${trendCustomDateRange.end.slice(5)}`
+          : '直接指定...';
+      }
+
+      const nav = document.getElementById('analyticsMonthNavigator');
+      if (nav) nav.classList.toggle('hidden', currentTrendPeriod !== '1m');
+
+      const monthTitle = document.getElementById('analyticsMonthTitle');
+      const periodSub = document.getElementById('trendPeriodLabelDisplay');
+      const pieBadge = document.getElementById('pieChartPeriodBadge');
+      const trendBadge = document.getElementById('trendChartPeriodBadge');
+
+      const labelText = getAnalyticsPeriodLabel();
+      if (monthTitle) monthTitle.textContent = `${analyticsYear}年${analyticsMonth}月`;
+      if (periodSub) periodSub.textContent = labelText;
+      if (pieBadge) pieBadge.textContent = labelText;
+      if (trendBadge) trendBadge.textContent = currentTrendPeriod === '1m' ? `${labelText} (日別)` : `${labelText} (月別)`;
+    }
+
+    function getAnalyticsPeriodLabel() {
+      if (currentTrendPeriod === '1m') return `${analyticsYear}年${analyticsMonth}月`;
+      if (currentTrendPeriod === '3m') return '3ヶ月間';
+      if (currentTrendPeriod === '6m') return '6ヶ月間';
+      if (currentTrendPeriod === '12m') return '12ヶ月間';
+      if (currentTrendPeriod === 'all') return '全期間';
+      if (currentTrendPeriod === 'custom') return `${trendCustomDateRange.start.replace(/-/g, '/')}〜${trendCustomDateRange.end.replace(/-/g, '/')}`;
+      return `${analyticsYear}年${analyticsMonth}月`;
+    }
+
+    function getAnalyticsFilteredTransactions() {
+      const endAnchor = new Date(analyticsYear, analyticsMonth, 0);
+      const endAnchorStr = `${endAnchor.getFullYear()}-${String(endAnchor.getMonth() + 1).padStart(2, '0')}-${String(endAnchor.getDate()).padStart(2, '0')}`;
+
+      return transactions.filter(t => {
+        if (!t.date) return false;
+        if (currentTrendPeriod === '1m') {
+          const prefix = `${analyticsYear}-${String(analyticsMonth).padStart(2, '0')}`;
+          return t.date.startsWith(prefix);
+        }
+        if (currentTrendPeriod === '3m' || currentTrendPeriod === '6m' || currentTrendPeriod === '12m') {
+          const months = currentTrendPeriod === '3m' ? 3 : currentTrendPeriod === '6m' ? 6 : 12;
+          const startD = new Date(analyticsYear, analyticsMonth - months, 1);
+          const startStr = `${startD.getFullYear()}-${String(startD.getMonth() + 1).padStart(2, '0')}-01`;
+          return t.date >= startStr && t.date <= endAnchorStr;
+        }
+        if (currentTrendPeriod === 'custom') {
+          return (!trendCustomDateRange.start || t.date >= trendCustomDateRange.start)
+            && (!trendCustomDateRange.end || t.date <= trendCustomDateRange.end);
+        }
+        return true;
+      });
+    }
+
     function renderAnalyticsCharts() {
-      updateAnalyticsPeriodBadges();
+      updateAnalyticsControlUI();
       renderPieChart();
       renderTrendChart();
     }
 
     function renderPieChart() {
       const canvas = document.getElementById('pieChartCanvas');
+      const emptyEl = document.getElementById('pieEmptyState');
+      const listContainer = document.getElementById('pieBreakdownListContainer');
+      const countBadge = document.getElementById('rankingItemCountBadge');
       if (!canvas) return;
 
-      let filtered = transactions.filter(t => t.type === 'expense' && t.date);
-      let filteredAllForPeriod = transactions.filter(t => t.date);
-
-      if (currentTrendPeriod === '1m') {
-        const prefix = `${analyticsYear}-${String(analyticsMonth).padStart(2, '0')}`;
-        filtered = filtered.filter(t => t.date.startsWith(prefix));
-        filteredAllForPeriod = filteredAllForPeriod.filter(t => t.date.startsWith(prefix));
-      } else if (currentTrendPeriod === '3m') {
-        const endD = new Date(analyticsYear, analyticsMonth, 0);
-        const startD = new Date(analyticsYear, analyticsMonth - 3, 1);
-        filtered = filtered.filter(t => {
-          const d = new Date(t.date);
-          return d >= startD && d <= endD;
-        });
-        filteredAllForPeriod = filteredAllForPeriod.filter(t => {
-          const d = new Date(t.date);
-          return d >= startD && d <= endD;
-        });
-      } else if (currentTrendPeriod === '6m') {
-        const endD = new Date(analyticsYear, analyticsMonth, 0);
-        const startD = new Date(analyticsYear, analyticsMonth - 6, 1);
-        filtered = filtered.filter(t => {
-          const d = new Date(t.date);
-          return d >= startD && d <= endD;
-        });
-        filteredAllForPeriod = filteredAllForPeriod.filter(t => {
-          const d = new Date(t.date);
-          return d >= startD && d <= endD;
-        });
-      } else if (currentTrendPeriod === '12m') {
-        const endD = new Date(analyticsYear, analyticsMonth, 0);
-        const startD = new Date(analyticsYear, analyticsMonth - 12, 1);
-        filtered = filtered.filter(t => {
-          const d = new Date(t.date);
-          return d >= startD && d <= endD;
-        });
-        filteredAllForPeriod = filteredAllForPeriod.filter(t => {
-          const d = new Date(t.date);
-          return d >= startD && d <= endD;
-        });
-      } else if (currentTrendPeriod === 'all') {
-        // 全期間はそのまま集計
-      } else if (currentTrendPeriod === 'custom' && trendCustomDateRange.start && trendCustomDateRange.end) {
-        filtered = filtered.filter(t => t.date >= trendCustomDateRange.start && t.date <= trendCustomDateRange.end);
-        filteredAllForPeriod = filteredAllForPeriod.filter(t => t.date >= trendCustomDateRange.start && t.date <= trendCustomDateRange.end);
-      }
-
-      let totalIncomePeriod = 0;
-      filteredAllForPeriod.forEach(t => {
-        if (t.type === 'income') totalIncomePeriod += (Number(t.amount) || 0);
-      });
+      const filtered = getAnalyticsFilteredTransactions();
+      const expenses = filtered.filter(t => t.type === 'expense');
+      const totalExpense = expenses.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
       const map = {};
-      filtered.forEach(t => {
-        let key = 'その他';
-        if (pieDimension === 'category') key = t.category || 'その他';
-        else if (pieDimension === 'payment') {
-          const pMeta = getPaymentMeta(t.paymentMethod);
-          key = pMeta.name || '現金';
-        }
+      expenses.forEach(t => {
+        const key = pieDimension === 'category' ? (t.category || 'その他') : (t.paymentMethod || '未指定');
         map[key] = (map[key] || 0) + (Number(t.amount) || 0);
       });
 
-      const sortedEntries = Object.entries(map).sort((a, b) => b[1] - a[1]);
-      const labels = sortedEntries.map(e => e[0]);
-      const data = sortedEntries.map(e => e[1]);
-      const totalExpense = data.reduce((sum, v) => sum + v, 0);
+      const entries = Object.entries(map).sort((a, b) => b[1] - a[1]);
+      if (countBadge) countBadge.textContent = `(${entries.length}件)`;
 
-      const rankingCount = document.getElementById('rankingItemCountBadge');
-      if (rankingCount) rankingCount.textContent = `(${sortedEntries.length}件)`;
-      const listContainer = document.getElementById('pieBreakdownListContainer');
+      if (pieChartInstance) {
+        pieChartInstance.destroy();
+        pieChartInstance = null;
+      }
+
+      if (entries.length === 0) {
+        if (emptyEl) emptyEl.classList.remove('hidden');
+        if (listContainer) listContainer.innerHTML = '';
+        return;
+      }
+      if (emptyEl) emptyEl.classList.add('hidden');
+
+      const palette = [
+        '#1a73e8', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+        '#06b6d4', '#ec4899', '#6366f1', '#14b8a6', '#f97316', '#64748b'
+      ];
+
+      const labels = entries.map(e => e[0]);
+      const values = entries.map(e => e[1]);
+      const colors = entries.map((_, idx) => palette[idx % palette.length]);
+
+      // ランキングリスト描画
       if (listContainer) {
         listContainer.innerHTML = '';
-        sortedEntries.forEach((entry, idx) => {
-          const pct = totalExpense > 0 ? Math.round((entry[1] / totalExpense) * 100) : 0;
+        entries.forEach(([name, val], idx) => {
+          const pct = totalExpense > 0 ? ((val / totalExpense) * 100).toFixed(1) : '0.0';
           const row = document.createElement('div');
-          row.className = 'p-2 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs';
+          row.className = 'flex items-center justify-between p-2 rounded-xl bg-slate-50 border border-slate-100 text-xs';
           row.innerHTML = `
-            <div class="flex items-center space-x-2 truncate pr-2">
-              <span class="w-4 h-4 rounded-full bg-white border border-slate-200 text-[9px] font-bold text-slate-500 flex items-center justify-center flex-shrink-0">${idx + 1}</span>
-              <span class="font-bold text-slate-800 truncate">${escapeHtml(entry[0])}</span>
-              <span class="text-[10px] text-blue-600 font-bold font-mono">(${pct}%)</span>
+            <div class="flex items-center space-x-2 min-w-0 pr-2">
+              <span class="w-4 h-4 rounded-full text-[9px] font-black text-white flex items-center justify-center flex-shrink-0" style="background-color:${colors[idx]}">${idx + 1}</span>
+              <span class="font-bold text-slate-700 truncate">${escapeHtml(name)}</span>
             </div>
-            <span class="font-black font-mono text-slate-900 flex-shrink-0">¥${entry[1].toLocaleString()}</span>
+            <div class="flex items-center space-x-2 flex-shrink-0 font-mono">
+              <span class="text-[10px] text-slate-400 font-bold">${pct}%</span>
+              <span class="font-black text-slate-800">¥${val.toLocaleString()}</span>
+            </div>
           `;
           listContainer.appendChild(row);
         });
       }
 
-      if (pieChartInstance) pieChartInstance.destroy();
-
-      if (labels.length === 0 || totalExpense === 0) {
-        document.getElementById('pieEmptyState')?.classList.remove('hidden');
-        return;
-      }
-      document.getElementById('pieEmptyState')?.classList.add('hidden');
-
-      // 中央の支出総額 ＆ 消化率表示プラグイン
-      const centerPlugin = {
-        id: 'centerTotalPlugin',
-        beforeDraw(chart) {
+      const centerTextPlugin = {
+        id: 'centerTextPlugin',
+        afterDraw(chart) {
           const { ctx, chartArea } = chart;
           if (!chartArea) return;
           const cx = (chartArea.left + chartArea.right) / 2;
@@ -3114,328 +3256,110 @@
           ctx.save();
           ctx.textAlign = 'center';
           ctx.textBaseline = 'middle';
-
-          ctx.font = 'bold 9px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
           ctx.fillStyle = '#64748b';
-          ctx.fillText('支出総額', cx, cy - 18);
-
-          ctx.font = '900 15px monospace';
+          ctx.font = 'bold 10px sans-serif';
+          ctx.fillText('支出合計', cx, cy - 12);
           ctx.fillStyle = '#0f172a';
-          ctx.fillText(`¥${totalExpense.toLocaleString()}`, cx, cy - 3);
-
-          if (totalIncomePeriod > 0) {
-            const ratioPct = Math.round((totalExpense / totalIncomePeriod) * 100);
-            const isOver = ratioPct > 100;
-            ctx.font = 'bold 9.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-            ctx.fillStyle = isOver ? '#ef4444' : '#2563eb';
-            ctx.fillText(`消化率 ${ratioPct}%`, cx, cy + 12);
-
-            ctx.font = 'bold 8.5px monospace';
-            ctx.fillStyle = '#94a3b8';
-            ctx.fillText(`(収入 ¥${totalIncomePeriod.toLocaleString()})`, cx, cy + 23);
-          } else {
-            ctx.font = 'bold 8.5px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-            ctx.fillStyle = '#94a3b8';
-            ctx.fillText('収入データなし', cx, cy + 12);
-          }
+          ctx.font = '900 16px monospace';
+          ctx.fillText(`¥${totalExpense.toLocaleString()}`, cx, cy + 7);
           ctx.restore();
         }
       };
-
-      // スライス内パーセント ＆ 引き出し線上下2段ラベル（見切れ防止クランプ付き）プラグイン
-      const pieLabelsPlugin = {
-        id: 'pieLabelsPlugin',
-        afterDraw(chart) {
-          const { ctx, chartArea } = chart;
-          if (!chartArea) return;
-          const meta = chart.getDatasetMeta(0);
-          if (!meta || !meta.data || meta.data.length === 0) return;
-
-          const total = meta.total || data.reduce((a, b) => a + b, 0);
-          if (total <= 0) return;
-
-          ctx.save();
-
-          meta.data.forEach((element, i) => {
-            const val = data[i] || 0;
-            const pct = Math.round((val / total) * 100);
-            const { startAngle, endAngle, outerRadius, innerRadius, x, y } = element;
-            const midAngle = startAngle + (endAngle - startAngle) / 2;
-            const cos = Math.cos(midAngle);
-            const sin = Math.sin(midAngle);
-
-            if (pct >= 5) {
-              const midR = innerRadius + (outerRadius - innerRadius) * 0.52;
-              const textX = x + cos * midR;
-              const textY = y + sin * midR;
-
-              ctx.font = '900 10px monospace';
-              ctx.textAlign = 'center';
-              ctx.textBaseline = 'middle';
-              ctx.fillStyle = '#ffffff';
-              ctx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-              ctx.shadowBlur = 3;
-              ctx.fillText(`${pct}%`, textX, textY);
-              ctx.shadowColor = 'transparent';
-              ctx.shadowBlur = 0;
-            }
-
-            if (pct >= 3) {
-              const rawLabel = labels[i];
-              const line1Text = rawLabel;
-              const line2Text = `¥${val.toLocaleString()}`;
-
-              const r1 = outerRadius * 0.94;
-              const r2 = outerRadius + 10;
-              const x1 = x + cos * r1;
-              const y1 = y + sin * r1;
-              const x2 = x + cos * r2;
-              const y2 = y + sin * r2;
-
-              const isRight = cos >= 0;
-              const x3 = x2 + (isRight ? 8 : -8);
-              const y3 = y2;
-
-              ctx.font = 'bold 9px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-              const w1 = ctx.measureText(line1Text).width;
-              ctx.font = '800 8.5px monospace';
-              const w2 = ctx.measureText(line2Text).width;
-
-              const paddingX = 6;
-              const pillWidth = Math.max(w1, w2) + paddingX * 2;
-              const pillHeight = 24;
-
-              let pillX = isRight ? x3 + 2 : x3 - pillWidth - 2;
-              let pillY = y3 - pillHeight / 2;
-
-              const minX = 4;
-              const maxX = chart.width - pillWidth - 4;
-              if (pillX < minX) pillX = minX;
-              if (pillX > maxX) pillX = maxX;
-
-              const minY = 4;
-              const maxY = chart.height - pillHeight - 4;
-              if (pillY < minY) pillY = minY;
-              if (pillY > maxY) pillY = maxY;
-
-              const targetY = pillY + pillHeight / 2;
-
-              ctx.strokeStyle = '#94a3b8';
-              ctx.lineWidth = 1.2;
-              ctx.beginPath();
-              ctx.moveTo(x1, y1);
-              ctx.lineTo(x2, y2);
-              ctx.lineTo(x3, targetY);
-              ctx.stroke();
-
-              ctx.fillStyle = 'rgba(255, 255, 255, 0.94)';
-              ctx.strokeStyle = 'rgba(203, 213, 225, 0.85)';
-              ctx.lineWidth = 1;
-              ctx.beginPath();
-              if (ctx.roundRect) {
-                ctx.roundRect(pillX, pillY, pillWidth, pillHeight, 6);
-              } else {
-                ctx.rect(pillX, pillY, pillWidth, pillHeight);
-              }
-              ctx.fill();
-              ctx.stroke();
-
-              ctx.font = 'bold 9px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-              ctx.fillStyle = '#0f172a';
-              ctx.textAlign = 'left';
-              ctx.textBaseline = 'top';
-              ctx.fillText(line1Text, pillX + paddingX, pillY + 3);
-
-              ctx.font = '800 8.5px monospace';
-              ctx.fillStyle = '#475569';
-              ctx.fillText(line2Text, pillX + paddingX, pillY + 13);
-            }
-          });
-
-          ctx.restore();
-        }
-      };
-
-      const palette = ['#1a73e8', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#38BDF8', '#14B8A6', '#64748B'];
 
       pieChartInstance = new Chart(canvas.getContext('2d'), {
         type: 'doughnut',
         data: {
-          labels: labels,
+          labels,
           datasets: [{
-            data: data,
-            backgroundColor: labels.map((_, i) => palette[i % palette.length]),
+            data: values,
+            backgroundColor: colors,
             borderWidth: 2,
-            borderColor: '#FFFFFF'
+            borderColor: '#ffffff'
           }]
         },
-        plugins: [centerPlugin, pieLabelsPlugin],
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          layout: {
-            padding: { top: 16, bottom: 16, left: 16, right: 16 }
-          },
+          cutout: '58%',
           plugins: {
-            legend: { display: false },
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 10,
+                padding: 8,
+                font: { size: 10, weight: 'bold' }
+              }
+            },
             tooltip: {
               callbacks: {
-                label: function(ctx) {
-                  const val = ctx.parsed || 0;
-                  const pct = totalExpense > 0 ? Math.round((val / totalExpense) * 100) : 0;
-                  return ` ¥${val.toLocaleString()} (${pct}%)`;
+                label: (ctx) => {
+                  const val = Number(ctx.raw) || 0;
+                  const pct = totalExpense > 0 ? ((val / totalExpense) * 100).toFixed(1) : '0.0';
+                  return ` ${ctx.label}: ¥${val.toLocaleString()} (${pct}%)`;
                 }
               }
             }
-          },
-          cutout: '68%'
-        }
+          }
+        },
+        plugins: [centerTextPlugin]
       });
     }
 
     function renderTrendChart() {
       const canvas = document.getElementById('trendChartCanvas');
+      const emptyEl = document.getElementById('trendEmptyState');
       if (!canvas) return;
 
-      let keys = [];
-      let labels = [];
-      let isDaily = false;
+      const filtered = getAnalyticsFilteredTransactions();
 
-      if (currentTrendPeriod === '1m') {
-        isDaily = true;
-        const lastDay = new Date(analyticsYear, analyticsMonth, 0).getDate();
-        for (let d = 1; d <= lastDay; d++) {
-          const mStr = String(analyticsMonth).padStart(2, '0');
-          const dStr = String(d).padStart(2, '0');
-          keys.push(`${analyticsYear}-${mStr}-${dStr}`);
-          labels.push(`${d}日`);
-        }
-      } else if (currentTrendPeriod === '3m') {
-        for (let i = 2; i >= 0; i--) {
-          const d = new Date(analyticsYear, analyticsMonth - 1 - i, 1);
-          const y = d.getFullYear();
-          const m = String(d.getMonth() + 1).padStart(2, '0');
-          keys.push(`${y}-${m}`);
-          labels.push(`${d.getMonth() + 1}月`);
-        }
-      } else if (currentTrendPeriod === '6m') {
-        for (let i = 5; i >= 0; i--) {
-          const d = new Date(analyticsYear, analyticsMonth - 1 - i, 1);
-          const y = d.getFullYear();
-          const m = String(d.getMonth() + 1).padStart(2, '0');
-          keys.push(`${y}-${m}`);
-          labels.push(`${d.getMonth() + 1}月`);
-        }
-      } else if (currentTrendPeriod === '12m') {
-        for (let i = 11; i >= 0; i--) {
-          const d = new Date(analyticsYear, analyticsMonth - 1 - i, 1);
-          const y = d.getFullYear();
-          const m = String(d.getMonth() + 1).padStart(2, '0');
-          keys.push(`${y}-${m}`);
-          labels.push(`${d.getMonth() + 1}月`);
-        }
-      } else if (currentTrendPeriod === 'all') {
-        let allDates = transactions.map(t => t.date).filter(Boolean).sort();
-        if (allDates.length === 0) allDates = [getTodayString()];
-        const first = new Date(allDates[0]);
-        const last = new Date(allDates[allDates.length - 1]);
-        let cur = new Date(first.getFullYear(), first.getMonth(), 1);
-        const endMonth = new Date(last.getFullYear(), last.getMonth(), 1);
-        while (cur <= endMonth) {
-          const y = cur.getFullYear();
-          const m = String(cur.getMonth() + 1).padStart(2, '0');
-          keys.push(`${y}-${m}`);
-          labels.push(`${y.toString().slice(2)}/${cur.getMonth() + 1}`);
-          cur.setMonth(cur.getMonth() + 1);
-        }
-      } else if (currentTrendPeriod === 'custom' && trendCustomDateRange.start && trendCustomDateRange.end) {
-        const s = new Date(trendCustomDateRange.start);
-        const e = new Date(trendCustomDateRange.end);
-        const diffDays = Math.round((e - s) / (1000 * 60 * 60 * 24)) + 1;
-        if (diffDays <= 45) {
-          isDaily = true;
-          let cur = new Date(s);
-          while (cur <= e) {
-            const y = cur.getFullYear();
-            const m = String(cur.getMonth() + 1).padStart(2, '0');
-            const d = String(cur.getDate()).padStart(2, '0');
-            keys.push(`${y}-${m}-${d}`);
-            labels.push(`${cur.getMonth() + 1}/${cur.getDate()}`);
-            cur.setDate(cur.getDate() + 1);
-          }
-        } else {
-          let cur = new Date(s.getFullYear(), s.getMonth(), 1);
-          const endMonth = new Date(e.getFullYear(), e.getMonth(), 1);
-          while (cur <= endMonth) {
-            const y = cur.getFullYear();
-            const m = String(cur.getMonth() + 1).padStart(2, '0');
-            keys.push(`${y}-${m}`);
-            labels.push(`${cur.getMonth() + 1}月`);
-            cur.setMonth(cur.getMonth() + 1);
-          }
-        }
+      if (trendChartInstance) {
+        trendChartInstance.destroy();
+        trendChartInstance = null;
       }
 
-      const mapIncome = {};
-      const mapExpense = {};
-      const mapFixed = {};
-      const mapVariable = {};
-
-      keys.forEach(k => {
-        mapIncome[k] = 0;
-        mapExpense[k] = 0;
-        mapFixed[k] = 0;
-        mapVariable[k] = 0;
-      });
-
-      transactions.forEach(t => {
-        if (!t.date) return;
-        const key = isDaily ? t.date : t.date.slice(0, 7);
-        if (mapExpense[key] !== undefined) {
-          const amt = Number(t.amount) || 0;
-          if (t.type === 'expense') {
-            mapExpense[key] += amt;
-            if (getCategoryGroup(t.category) === 'fixed') mapFixed[key] += amt;
-            else mapVariable[key] += amt;
-          } else if (t.type === 'income') {
-            mapIncome[key] += amt;
-          }
-        }
-      });
-
-      const incomeVals = keys.map(k => mapIncome[k]);
-      const expenseVals = keys.map(k => mapExpense[k]);
-      const diffVals = keys.map(k => mapIncome[k] - mapExpense[k]);
-      const fixedVals = keys.map(k => mapFixed[k]);
-      const varVals = keys.map(k => mapVariable[k]);
-
-      const hasAny = incomeVals.some(v => v > 0) || expenseVals.some(v => v > 0);
-
-      if (trendChartInstance) trendChartInstance.destroy();
-
-      if (!hasAny) {
-        document.getElementById('trendEmptyState')?.classList.remove('hidden');
+      if (filtered.length === 0) {
+        if (emptyEl) emptyEl.classList.remove('hidden');
         return;
       }
-      document.getElementById('trendEmptyState')?.classList.add('hidden');
+      if (emptyEl) emptyEl.classList.add('hidden');
+
+      const bucketMap = {};
+      filtered.forEach(t => {
+        if (!t.date) return;
+        const key = currentTrendPeriod === '1m' ? `${Number(t.date.slice(8, 10))}日` : t.date.slice(0, 7).replace('-', '/');
+        if (!bucketMap[key]) {
+          bucketMap[key] = { sortKey: t.date.slice(0, currentTrendPeriod === '1m' ? 10 : 7), income: 0, expense: 0, fixed: 0, variable: 0 };
+        }
+        const amt = Number(t.amount) || 0;
+        if (t.type === 'income') {
+          bucketMap[key].income += amt;
+        } else {
+          bucketMap[key].expense += amt;
+          if (getCategoryGroup(t.category) === 'fixed') bucketMap[key].fixed += amt;
+          else bucketMap[key].variable += amt;
+        }
+      });
+
+      const sortedEntries = Object.entries(bucketMap).sort((a, b) => a[1].sortKey.localeCompare(b[1].sortKey));
+      const labels = sortedEntries.map(e => e[0]);
 
       let datasets = [];
       if (currentTrendGraphMode === 'diff') {
         datasets = [{
-          label: '純収支 (差額)',
-          data: diffVals,
-          backgroundColor: diffVals.map(v => v >= 0 ? '#10B981' : '#EF4444'),
-          borderRadius: 4
+          label: '純収支',
+          data: sortedEntries.map(e => e[1].income - e[1].expense),
+          backgroundColor: sortedEntries.map(e => (e[1].income - e[1].expense) >= 0 ? 'rgba(26, 115, 232, 0.8)' : 'rgba(225, 29, 72, 0.8)'),
+          borderRadius: 6
         }];
       } else if (currentTrendGraphMode === 'both') {
         datasets = [
-          { label: '収入', data: incomeVals, backgroundColor: '#10B981', borderRadius: 4 },
-          { label: '支出', data: expenseVals, backgroundColor: '#EF4444', borderRadius: 4 }
+          { label: '収入', data: sortedEntries.map(e => e[1].income), backgroundColor: 'rgba(16, 185, 129, 0.82)', borderRadius: 5 },
+          { label: '支出', data: sortedEntries.map(e => e[1].expense), backgroundColor: 'rgba(225, 29, 72, 0.82)', borderRadius: 5 }
         ];
       } else {
         datasets = [
-          { label: '変動費', data: varVals, backgroundColor: '#F59E0B', borderRadius: 4 },
-          { label: '固定費', data: fixedVals, backgroundColor: '#6366F1', borderRadius: 4 }
+          { label: '固定費', data: sortedEntries.map(e => e[1].fixed), backgroundColor: 'rgba(99, 102, 241, 0.85)', borderRadius: 5 },
+          { label: '変動費', data: sortedEntries.map(e => e[1].variable), backgroundColor: 'rgba(245, 158, 11, 0.85)', borderRadius: 5 }
         ];
       }
 
@@ -3445,46 +3369,246 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              ticks: {
-                font: { size: 9 },
-                callback: (val) => (val === 0 ? '¥0' : (val > 0 ? '+¥' : '-¥') + Math.abs(val).toLocaleString())
-              },
-              grid: { color: '#F1F5F9' }
-            },
-            x: {
-              ticks: {
-                font: { size: labels.length > 15 ? 8 : 9 },
-                maxRotation: 45,
-                autoSkip: labels.length > 20,
-                maxTicksLimit: 16
-              },
-              grid: { display: false }
+          plugins: {
+            legend: {
+              display: currentTrendGraphMode !== 'diff',
+              labels: { boxWidth: 10, font: { size: 10, weight: 'bold' } }
             }
           },
-          plugins: {
-            legend: { position: 'top', labels: { boxWidth: 10, font: { size: 10, weight: 'bold' } } },
-            tooltip: {
-              callbacks: {
-                label: function(ctx) {
-                  const val = ctx.parsed.y;
-                  const label = ctx.dataset.label || '';
-                  if (currentTrendGraphMode === 'diff') {
-                    return (val >= 0 ? `黒字: +¥${val.toLocaleString()}` : `赤字: -¥${Math.abs(val).toLocaleString()}`);
-                  }
-                  return `${label}: ¥${val.toLocaleString()}`;
-                }
-              }
-            }
+          scales: {
+            x: { ticks: { font: { size: 9 } }, grid: { display: false } },
+            y: { ticks: { font: { size: 9 } } }
           }
         }
       });
     }
 
-    // 家計簿アプリで実績のある画像リサイズ圧縮（長辺1280px / 品質0.8）
-    async function compressAndResizeImage(file, maxDimension = 1280, quality = 0.8) {
+    // ==================== ナビゲーション・モーダル・設定 ====================
+
+    function switchView(viewName) {
+      ['home', 'analytics', 'recurring'].forEach(v => {
+        const sec = document.getElementById(`view-${v}`);
+        const tab = document.getElementById(`tab-${v}`);
+        if (sec) sec.classList.toggle('hidden', v !== viewName);
+        if (tab) {
+          tab.className = v === viewName
+            ? 'tab-btn flex-1 flex flex-col items-center space-y-0.5 text-blue-600 active transition'
+            : 'tab-btn flex-1 flex flex-col items-center space-y-0.5 text-slate-400 transition';
+        }
+      });
+
+      if (viewName === 'analytics') {
+        analyticsYear = activeYear;
+        analyticsMonth = activeMonth;
+        setupTrendYearDropdown();
+        renderAnalyticsCharts();
+      } else if (viewName === 'recurring') {
+        renderRecurringList();
+      }
+    }
+
+    function openModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    }
+
+    function openBudgetModal() {
+      const input = document.getElementById('inputMonthlyBudget');
+      if (input) input.value = monthlyBudget;
+      openModal('budgetModal');
+    }
+
+    function saveMonthlyBudget() {
+      const val = Number(document.getElementById('inputMonthlyBudget')?.value);
+      if (isNaN(val) || val < 0) {
+        showToast('有効な予算金額を入力してください', true);
+        return;
+      }
+      monthlyBudget = val;
+      saveStoredData();
+      closeModal('budgetModal');
+      refreshDashboard();
+      showToast('月間予算を更新しました');
+    }
+
+    function triggerDeleteConfirmation(title, message, onConfirmCallback) {
+      const titleEl = document.getElementById('deleteConfirmTitle');
+      const msgEl = document.getElementById('deleteConfirmMessage');
+      const execBtn = document.getElementById('btnExecuteDelete');
+      if (titleEl) titleEl.textContent = title;
+      if (msgEl) msgEl.textContent = message;
+      if (execBtn) {
+        execBtn.onclick = () => {
+          closeModal('deleteConfirmModal');
+          if (typeof onConfirmCallback === 'function') onConfirmCallback();
+        };
+      }
+      openModal('deleteConfirmModal');
+    }
+
+    function confirmResetAllData() {
+      closeModal('settingsModal');
+      triggerDeleteConfirmation(
+        '全データを初期化しますか？',
+        '端末内に保存されているすべての明細・定期ルールを削除し、初期状態に戻します。本当によろしいですか？',
+        () => {
+          transactions = [];
+          recurringRules = [];
+          localStorage.setItem('okozukai_initialized_flag', 'true');
+          saveStoredData();
+          refreshDashboard();
+          showToast('端末内の全データを初期化しました');
+        }
+      );
+    }
+
+    function saveApiKey() {
+      const input = document.getElementById('geminiApiKey');
+      if (!input) return;
+      geminiApiKey = input.value.trim();
+      saveStoredData();
+      showToast('Gemini APIキーを保存しました');
+    }
+
+    function saveGasUrl() {
+      const input = document.getElementById('gasUrl');
+      if (!input) return;
+      gasEndpoint = input.value.trim() || DEFAULT_GAS_URL;
+      input.value = gasEndpoint;
+      saveStoredData();
+      showToast('GAS URLを保存しました');
+    }
+
+    async function testGeminiConnection() {
+      const keyInput = document.getElementById('geminiApiKey');
+      const statusBox = document.getElementById('geminiTestStatus');
+      const btnText = document.getElementById('testBtnText');
+      const key = (keyInput?.value || geminiApiKey || '').trim();
+
+      if (!key) {
+        showToast('先にGemini APIキーを入力してください', true);
+        return;
+      }
+
+      if (btnText) btnText.textContent = '確認中...';
+      if (statusBox) {
+        statusBox.classList.remove('hidden');
+        statusBox.className = 'text-[11px] p-2.5 rounded-2xl font-bold bg-blue-50 text-blue-700';
+        statusBox.textContent = 'Google APIと接続確認中...';
+      }
+
+      try {
+        const start = performance.now();
+        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${encodeURIComponent(key)}`);
+        const elapsed = ((performance.now() - start) / 1000).toFixed(2);
+        if (!resp.ok) {
+          const errText = await resp.text();
+          throw new Error(`HTTP ${resp.status}: ${errText}`);
+        }
+        geminiApiKey = key;
+        saveStoredData();
+        if (statusBox) {
+          statusBox.className = 'text-[11px] p-2.5 rounded-2xl font-bold bg-emerald-50 text-emerald-700 border border-emerald-200';
+          statusBox.textContent = `接続成功 (${elapsed}秒) - APIキーは有効です`;
+        }
+      } catch (err) {
+        if (statusBox) {
+          statusBox.className = 'text-[11px] p-2.5 rounded-2xl font-bold bg-rose-50 text-rose-700 border border-rose-200';
+          statusBox.textContent = `接続エラー: APIキーを確認してください (${err.message})`;
+        }
+      } finally {
+        if (btnText) btnText.textContent = 'テスト';
+      }
+    }
+
+    // ==================== スプレッドシート双方向同期 ====================
+
+    function openSyncMenuModal() {
+      openModal('syncModal');
+    }
+
+    async function exportToSheet() {
+      const url = (gasEndpoint || DEFAULT_GAS_URL).trim();
+      if (!url) {
+        showToast('GAS URLを設定してください', true);
+        return;
+      }
+      closeModal('syncModal');
+      showToast('スプレッドシートへ送信中...');
+
+      try {
+        const payload = {
+          action: 'sync_export',
+          transactions,
+          recurringRules,
+          monthlyBudget
+        };
+        const resp = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        showToast('スプレッドシートへ送信完了しました');
+      } catch (err) {
+        showErrorDetailModal('スプシ送信エラー', 'スプレッドシートへのデータ送信に失敗しました。GAS URLと公開設定をご確認ください。', err.message || String(err));
+      }
+    }
+
+    async function executeImportFromSheet() {
+      const url = (gasEndpoint || DEFAULT_GAS_URL).trim();
+      if (!url) {
+        showToast('GAS URLを設定してください', true);
+        return;
+      }
+      closeModal('syncModal');
+      showToast('スプレッドシートから読込中...');
+
+      try {
+        const sep = url.includes('?') ? '&' : '?';
+        const resp = await fetch(`${url}${sep}action=sync_import`);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        const data = await resp.json();
+
+        if (Array.isArray(data.transactions)) {
+          transactions = data.transactions.map((item, idx) => ({
+            id: item.id || `tx_imp_${Date.now()}_${idx}`,
+            recurringId: item.recurringId || '',
+            date: String(item.date || getTodayString()).slice(0, 10),
+            type: item.type === 'income' ? 'income' : 'expense',
+            category: item.category || (item.type === 'income' ? 'お小遣い' : 'その他雑費'),
+            amount: Number(item.amount) || 0,
+            title: item.title || item.category || '明細',
+            memo: item.memo || '',
+            paymentMethod: item.paymentMethod || (item.type === 'income' ? '口座引落' : '現金'),
+            createdAt: item.createdAt || new Date().toLocaleString('ja-JP')
+          }));
+        }
+        if (Array.isArray(data.recurringRules)) {
+          recurringRules = data.recurringRules;
+        }
+        if (data.monthlyBudget) {
+          monthlyBudget = Number(data.monthlyBudget) || monthlyBudget;
+        }
+
+        localStorage.setItem('okozukai_initialized_flag', 'true');
+        syncAllRecurringRules();
+        saveStoredData();
+        refreshDashboard();
+        showToast(`スプレッドシートから${transactions.length}件同期しました`);
+      } catch (err) {
+        showErrorDetailModal('スプシ読込エラー', 'スプレッドシートからの読み込みに失敗しました。GAS URLとデプロイ権限をご確認ください。', err.message || String(err));
+      }
+    }
+
+    // ==================== レシート画像高速解析 ====================
+
+    async function compressAndResizeImage(file, maxDimension = 1000, quality = 0.68) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
         reader.onload = (e) => {
@@ -3492,7 +3616,6 @@
           img.onload = () => {
             let width = img.width;
             let height = img.height;
-
             if (width > maxDimension || height > maxDimension) {
               if (width > height) {
                 height = Math.round((height * maxDimension) / width);
@@ -3502,15 +3625,13 @@
                 height = maxDimension;
               }
             }
-
             const canvas = document.createElement('canvas');
             canvas.width = width;
             canvas.height = height;
             const ctx = canvas.getContext('2d');
             ctx.drawImage(img, 0, 0, width, height);
-
-            const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
-            resolve(compressedBase64.split(',')[1]);
+            const compressed = canvas.toDataURL('image/jpeg', quality);
+            resolve(compressed.split(',')[1]);
           };
           img.onerror = reject;
           img.src = e.target.result;
@@ -3520,268 +3641,168 @@
       });
     }
 
-    // 科目マッピング
     function normalizeCategory(rawCat) {
-      if (!rawCat) return '食費・ランチ';
-      const cat = String(rawCat).trim();
       const allCats = [...variableExpenseCategories, ...fixedExpenseCategories];
-      if (allCats.includes(cat)) return cat;
-
-      if (cat.includes('タバコ') || cat.includes('煙草') || cat.includes('電子タバコ') || cat.includes('嗜好品') || cat.includes('アイコス')) return '嗜好品';
-      if (cat.includes('立替') || cat.includes('立替払')) return '立替払';
-      if (cat.includes('酒') || cat.includes('居酒屋') || cat.includes('ビール') || cat.includes('バー') || cat.includes('飲み')) return '外食（酒あり）';
-      if (cat.includes('外食') || cat.includes('レストラン') || cat.includes('ディナー') || cat.includes('ラーメン')) return '外食（酒なし）';
-      if (cat.includes('カフェ') || cat.includes('コーヒー') || cat.includes('スタバ') || cat.includes('軽食') || cat.includes('喫茶')) return 'カフェ・軽食';
-      if (cat.includes('食') || cat.includes('弁当') || cat.includes('コンビニ') || cat.includes('ランチ') || cat.includes('パン')) return '食費・ランチ';
-      if (cat.includes('趣味') || cat.includes('ゲーム') || cat.includes('本') || cat.includes('映画') || cat.includes('娯楽')) return '趣味・娯楽';
-      if (cat.includes('日用') || cat.includes('ドラッグ') || cat.includes('消耗品')) return '日用品';
-      if (cat.includes('服') || cat.includes('美容') || cat.includes('カット') || cat.includes('サロン')) return '衣服・美容';
-      if (cat.includes('交通') || cat.includes('電車') || cat.includes('バス') || cat.includes('タクシー') || cat.includes('ガソリン')) return '交通費';
-      if (cat.includes('サブスク') || cat.includes('月額')) return 'サブスク';
-
-      return 'その他雑費';
+      if (allCats.includes(rawCat)) return rawCat;
+      if (!rawCat) return '食費・ランチ';
+      if (rawCat.includes('カフェ') || rawCat.includes('コーヒー')) return 'カフェ・軽食';
+      if (rawCat.includes('酒') || rawCat.includes('居酒屋')) return '外食（酒あり）';
+      if (rawCat.includes('外食') || rawCat.includes('レストラン')) return '外食（酒なし）';
+      if (rawCat.includes('タバコ') || rawCat.includes('嗜好')) return '嗜好品';
+      if (rawCat.includes('日用') || rawCat.includes('ドラッグ')) return '日用品';
+      if (rawCat.includes('交通') || rawCat.includes('電車')) return '交通費';
+      if (rawCat.includes('サブスク')) return 'サブスク';
+      return '食費・ランチ';
     }
 
-    // 家計簿アプリで実績のある最速・安定 Gemini OCRエンジン
-    async function analyzeReceiptWithGemini(base64Image, mimeType, abortSignal, customKey = '') {
-      const apiKey = customKey || geminiApiKey || localStorage.getItem('okozukai_gemini_key') || "";
-      if (!apiKey) {
-        throw new Error('Gemini APIキーが未設定です。設定から入力してください');
+    async function handleReceiptUpload(event) {
+      const file = event.target.files?.[0];
+      event.target.value = '';
+      if (!file) return;
+
+      const key = (geminiApiKey || localStorage.getItem('okozukai_gemini_key') || '').trim();
+      if (!key) {
+        showToast('先に設定画面でGemini APIキーを保存してください', true);
+        openModal('settingsModal');
+        return;
       }
 
+      const overlay = document.getElementById('receiptLoadingOverlay');
+      const timerText = document.getElementById('receiptTimerText');
+      if (overlay) overlay.classList.remove('hidden');
+
+      receiptStartTime = performance.now();
+      if (timerText) timerText.textContent = '0.0秒';
+      clearInterval(receiptTimerInterval);
+      receiptTimerInterval = setInterval(() => {
+        const sec = ((performance.now() - receiptStartTime) / 1000).toFixed(1);
+        if (timerText) timerText.textContent = `${sec}秒`;
+      }, 100);
+
+      receiptAbortController = new AbortController();
+
+      try {
+        const base64Data = await compressAndResizeImage(file, 1000, 0.68);
+        const result = await analyzeReceiptWithGemini(base64Data, 'image/jpeg', receiptAbortController.signal, key);
+        const elapsedSec = ((performance.now() - receiptStartTime) / 1000).toFixed(1);
+
+        clearInterval(receiptTimerInterval);
+        if (overlay) overlay.classList.add('hidden');
+
+        // 確認モーダルへ値を反映
+        const catSel = document.getElementById('confReceiptCategory');
+        if (catSel) {
+          catSel.innerHTML = '';
+          [...variableExpenseCategories, ...fixedExpenseCategories].forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c;
+            opt.textContent = c;
+            catSel.appendChild(opt);
+          });
+          catSel.value = normalizeCategory(result.category);
+        }
+
+        document.getElementById('confReceiptDate').value = result.date || getTodayString();
+        document.getElementById('confReceiptAmount').value = Number(result.amount) || '';
+        document.getElementById('confReceiptTitle').value = result.storeName || '';
+        document.getElementById('confReceiptMemo').value = result.itemsSummary || '';
+
+        const rawPay = String(result.paymentMethod || '').toLowerCase();
+        if (rawPay.includes('paypay')) chooseReceiptPaymentMethod('PayPay');
+        else if (rawPay.includes('楽天ペイ')) chooseReceiptPaymentMethod('楽天ペイ');
+        else if (rawPay.includes('d払い')) chooseReceiptPaymentMethod('D払い');
+        else if (rawPay.includes('suica') || rawPay.includes('pasmo') || rawPay.includes('ic')) chooseReceiptPaymentMethod('交通系IC / Suica');
+        else if (rawPay.includes('クレジット') || rawPay.includes('card') || rawPay.includes('カード')) chooseReceiptPaymentMethod(mainCreditCard || '楽天カード');
+        else if (rawPay.includes('現金') || rawPay.includes('cash')) chooseReceiptPaymentMethod('現金');
+        else chooseReceiptPaymentMethod('');
+
+        openModal('receiptConfirmModal');
+        showToast(`${elapsedSec}秒で解析完了`);
+      } catch (err) {
+        clearInterval(receiptTimerInterval);
+        if (overlay) overlay.classList.add('hidden');
+        if (err.name === 'AbortError') return;
+        showErrorDetailModal(
+          'レシート解析エラー',
+          'レシートの読み取り中にエラーが発生しました。通信環境またはAPIキーをご確認ください。',
+          err.message || String(err)
+        );
+      }
+    }
+
+    async function analyzeReceiptWithGemini(base64Image, mimeType, abortSignal, apiKey) {
       const models = ['gemini-3.5-flash-lite', 'gemini-3.8-flash'];
       let lastError = null;
-      let lastErrorRaw = '';
 
-      const promptText = `あなたは日本のお小遣い帳レシート解析アシスタントです。画像から情報を抽出し、指定のJSON形式のみで返答してください。Markdownのバッククォートは含めないでください。
-
-科目ルール:
-- 食費・ランチ/カフェ・軽食/外食（酒なし）/外食（酒あり）/嗜好品/立替払/趣味・娯楽/日用品/衣服・美容/交通費/サブスク/その他固定/その他雑費
-支払い方法推測:
-- クレカ/PayPay/楽天ペイ/D払い/交通系IC / Suica/現金/その他
-
-返却JSON構造:
-{"storeName":"店舗名","date":"YYYY-MM-DD","amount":合計金額数値,"category":"科目名","paymentMethod":"推定支払い方法","memo":"購入品要約"}`;
+      const promptText = `日本のレシート画像から以下の項目を抽出しJSONのみで返してください。
+{
+  "date": "YYYY-MM-DD（不明なら本日）",
+  "amount": 合計金額の整数,
+  "storeName": "店舗名",
+  "category": "食費・ランチ / カフェ・軽食 / 外食（酒なし） / 外食（酒あり） / 嗜好品 / 日用品 / 衣服・美容 / 交通費 / その他雑費 のいずれか",
+  "paymentMethod": "現金 / クレジットカード / PayPay / 楽天ペイ / D払い / 交通系IC / 不明 のいずれか",
+  "itemsSummary": "主な購入品目の簡潔な要約"
+}`;
 
       for (const model of models) {
-        if (abortSignal && abortSignal.aborted) throw new DOMException('Aborted', 'AbortError');
-        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        if (abortSignal && abortSignal.aborted) {
+          throw new DOMException('Aborted', 'AbortError');
+        }
 
+        const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
         const payload = {
-          contents: [{ parts: [{ text: promptText }, { inlineData: { mimeType, data: base64Image } }] }],
+          contents: [{
+            parts: [
+              { text: promptText },
+              { inlineData: { mimeType, data: base64Image } }
+            ]
+          }],
           generationConfig: {
             temperature: 0.1,
-            responseMimeType: "application/json"
+            responseMimeType: 'application/json'
           }
         };
-
-        const timeoutController = new AbortController();
-        const timeoutId = setTimeout(() => timeoutController.abort(), 8500);
-        const onAbort = () => timeoutController.abort();
-        if (abortSignal) abortSignal.addEventListener('abort', onAbort, { once: true });
 
         try {
           const resp = await fetch(endpoint, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
-            signal: timeoutController.signal
+            signal: abortSignal
           });
 
-          clearTimeout(timeoutId);
-          if (abortSignal) abortSignal.removeEventListener('abort', onAbort);
-
           if (!resp.ok) {
-            const errJson = await resp.json().catch(() => ({}));
-            const errMsg = errJson.error?.message || `HTTP ${resp.status}`;
-            lastError = new Error(`[${model}] ${errMsg}`);
-            lastErrorRaw = JSON.stringify(errJson, null, 2);
-            continue;
+            const errTxt = await resp.text();
+            throw new Error(`[${model}] HTTP ${resp.status}: ${errTxt}`);
           }
 
           const resData = await resp.json();
-          const textCandidate = resData.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (!textCandidate) throw new Error('解析結果テキストが空です');
-
-          const cleanJson = textCandidate.replace(/```json/g, '').replace(/```/g, '').trim();
-          const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
-          if (!jsonMatch) throw new Error('解析結果からJSON形式を抽出できませんでした');
-
-          return JSON.parse(jsonMatch[0]);
+          const rawText = resData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          const cleaned = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+          return JSON.parse(cleaned);
         } catch (err) {
-          clearTimeout(timeoutId);
-          if (abortSignal) abortSignal.removeEventListener('abort', onAbort);
-          if (abortSignal && abortSignal.aborted) throw abortSignal.reason || new DOMException('Aborted', 'AbortError');
+          if (err.name === 'AbortError') throw err;
           lastError = err;
-          lastErrorRaw = err.stack || err.toString();
-          continue;
         }
       }
-
-      const finalErr = lastError || new Error('レシート解析に失敗しました');
-      finalErr.rawDetail = lastErrorRaw;
-      throw finalErr;
+      throw lastError || new Error('AI解析に失敗しました');
     }
 
-    async function handleReceiptUpload(event) {
-      const file = event.target.files?.[0];
-      if (!file) return;
-
-      const apiKey = geminiApiKey || localStorage.getItem('okozukai_gemini_key') || '';
-      if (!apiKey) {
-        showToast('⚠️ Gemini APIキーが未設定です。設定画面で登録してください', true);
-        openModal('settingsModal');
-        event.target.value = '';
-        return;
+    function abortReceiptAndOpenManual() {
+      if (receiptAbortController) {
+        receiptAbortController.abort();
       }
-
-      showOverlay(true);
-      startReceiptTimer();
-      receiptAbortController = new AbortController();
-
-      try {
-        const base64 = await compressAndResizeImage(file);
-        const parsed = await analyzeReceiptWithGemini(base64, 'image/jpeg', receiptAbortController.signal, apiKey);
-
-        const elapsedSec = stopReceiptTimer();
-        showOverlay(false);
-        showToast(`${elapsedSec}秒で解析完了！`);
-
-        document.getElementById('confReceiptDate').value = parsed.date || getTodayString();
-        document.getElementById('confReceiptAmount').value = parsed.amount || '';
-        document.getElementById('confReceiptTitle').value = parsed.storeName || '買い物';
-        document.getElementById('confReceiptMemo').value = parsed.memo || '';
-
-        const normalizedCat = normalizeCategory(parsed.category);
-        const catSel = document.getElementById('confReceiptCategory');
-        catSel.innerHTML = '';
-        [...variableExpenseCategories, ...fixedExpenseCategories].forEach(c => {
-          const opt = document.createElement('option');
-          opt.value = c;
-          opt.textContent = c;
-          if (c === normalizedCat) opt.selected = true;
-          catSel.appendChild(opt);
-        });
-
-        const rawPay = String(parsed.paymentMethod || '').toLowerCase();
-        let targetPay = '現金';
-        if (rawPay.includes('カード') || rawPay.includes('クレカ') || rawPay.includes('credit')) {
-          targetPay = mainCreditCard || '楽天カード';
-        } else if (rawPay.includes('paypay')) {
-          targetPay = 'PayPay';
-        } else if (rawPay.includes('d払い') || rawPay.includes('d-pay')) {
-          targetPay = 'D払い';
-        } else if (rawPay.includes('楽天')) {
-          targetPay = '楽天ペイ';
-        } else if (rawPay.includes('suica') || rawPay.includes('ic')) {
-          targetPay = '交通系IC / Suica';
-        }
-        chooseReceiptPaymentMethod(targetPay);
-
-        openModal('receiptConfirmModal');
-      } catch (err) {
-        stopReceiptTimer();
-        showOverlay(false);
-        
-        if (err && err.message === 'ManualAbort') return;
-        
-        console.error(err);
-        const rawDetail = err.rawDetail || err.stack || err.toString();
-        const rawStr = String(rawDetail) + ' ' + String(err.message || '');
-        let friendlyJapaneseMessage = '【レシート解析エラー】\n画像の解析に失敗しました。もう一度お試しいただくか、手入力をご利用ください。';
-
-        if (err.name === 'AbortError' || rawStr.includes('AbortError') || rawStr.includes('timeout') || rawStr.includes('Failed to fetch') || rawStr.includes('The user aborted a request')) {
-          friendlyJapaneseMessage = '【通信タイムアウト】\nサーバー混雑または通信環境により応答が途絶しました。電波の良い環境で再度お試しください。';
-        } else if (rawStr.includes('high demand') || rawStr.includes('503') || rawStr.includes('overloaded')) {
-          friendlyJapaneseMessage = '【Google側の一時的な混雑】\n現在Google側でAIサーバーへのアクセスが集中しています。数十秒ほど置いてから再度お試しください。';
-        } else if (rawStr.includes('429') || rawStr.includes('Quota exceeded') || rawStr.includes('limit: 20') || rawStr.includes('RESOURCE_EXHAUSTED')) {
-          friendlyJapaneseMessage = '【1日の利用制限に達しました】\nGoogle Gemini APIの無料利用枠（1日20回程度）を超過しました。明日夜の制限解除をお待ちいただくか、Google AI Studioで従量課金を有効にしてください。';
-        } else if (rawStr.includes('API_KEY_INVALID') || rawStr.includes('API key not valid') || rawStr.includes('APIキーが未設定')) {
-          friendlyJapaneseMessage = '【APIキーが無効または未設定です】\n右上の⚙️設定から正しいGemini APIキーを入力して保存してください。';
-        } else if (rawStr.includes('抽出できませんでした') || rawStr.includes('空です') || rawStr.includes('読み取れませんでした')) {
-          friendlyJapaneseMessage = '【レシートの内容を読み取れませんでした】\n照明の反射や影を避けて、金額と日付がくっきり写るように撮影し直してください。';
-        }
-
-        showErrorModal('レシート解析エラー', friendlyJapaneseMessage, rawDetail);
-      } finally {
-        event.target.value = '';
-        receiptAbortController = null;
-      }
-    }
-
-    function showErrorModal(title, message, raw = '') {
-      const modal = document.getElementById('errorDetailModal');
-      const titleEl = document.getElementById('errorModalTitle');
-      const msgEl = document.getElementById('errorModalMessage');
-      const rawEl = document.getElementById('errorModalRaw');
-      if (titleEl) titleEl.textContent = title || 'エラーが発生しました';
-      if (msgEl) msgEl.textContent = message || '';
-      if (rawEl) rawEl.textContent = typeof raw === 'object' ? JSON.stringify(raw, null, 2) : String(raw || '詳細情報なし');
-      if (modal) modal.classList.remove('hidden');
-    }
-
-    function copyErrorDetails() {
-      const rawEl = document.getElementById('errorModalRaw');
-      if (!rawEl) return;
-      const text = rawEl.textContent;
-      const temp = document.createElement('textarea');
-      temp.value = text;
-      document.body.appendChild(temp);
-      temp.select();
-      document.execCommand('copy');
-      document.body.removeChild(temp);
-      showToast('エラー詳細をコピーしました');
-    }
-
-    // 家計簿アプリと完全一致：わずか0.3秒で接続確認できる GET モデル一覧API
-    async function testGeminiConnection() {
-      const statusEl = document.getElementById('geminiTestStatus');
-      const key = document.getElementById('geminiApiKey').value.trim() || geminiApiKey;
-
-      if (!key) {
-        statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-amber-50 text-amber-700 font-bold block';
-        statusEl.textContent = '【未入力】APIキーを入力してください';
-        return;
-      }
-
-      statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-blue-50 text-blue-700 block font-bold';
-      statusEl.textContent = 'Google AIに接続テスト中...';
-
-      try {
-        const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`, {
-          method: 'GET'
-        });
-        if (resp.ok) {
-          const data = await resp.json();
-          const usableModels = (data.models || [])
-            .map(m => m.name.replace('models/', ''))
-            .filter(name => name.includes('flash'))
-            .slice(0, 3)
-            .join(', ');
-
-          statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-emerald-50 text-emerald-700 font-bold block leading-relaxed';
-          statusEl.textContent = `接続成功！高速モデル利用可能 (${usableModels || '利用準備完了'})`;
-        } else {
-          const errData = await resp.json().catch(() => ({}));
-          throw new Error(errData.error?.message || `HTTP ${resp.status}`);
-        }
-      } catch (e) {
-        statusEl.className = 'text-[11px] p-2.5 rounded-2xl bg-rose-50 text-rose-700 font-bold block leading-relaxed whitespace-pre-line';
-        const msg = e.message || String(e);
-        if (msg.includes('API_KEY_INVALID') || msg.includes('API key not valid')) {
-          statusEl.textContent = '【APIキーが無効です】\n入力されたキーが間違っているか失効しています。Google AI Studioからコピーし直してください。';
-        } else {
-          statusEl.textContent = `エラー: ${msg}`;
-        }
-      }
+      clearInterval(receiptTimerInterval);
+      closeModal('receiptLoadingOverlay');
+      openManualModal('expense');
     }
 
     function confirmSaveReceiptTransaction() {
       const date = document.getElementById('confReceiptDate').value;
       const amount = Number(document.getElementById('confReceiptAmount').value);
-      const title = document.getElementById('confReceiptTitle').value.trim() || '買い物';
       const category = document.getElementById('confReceiptCategory').value;
-      const paymentMethod = document.getElementById('confReceiptPayment').value;
+      const paymentMethod = document.getElementById('confReceiptPayment').value || '現金';
+      const title = document.getElementById('confReceiptTitle').value.trim() || category;
       const memo = document.getElementById('confReceiptMemo').value.trim();
 
       if (!date || isNaN(amount) || amount <= 0) {
@@ -3790,7 +3811,7 @@
       }
 
       transactions.unshift({
-        id: `tx_${Date.now()}`,
+        id: `tx_recpt_${Date.now()}`,
         date,
         type: 'expense',
         category,
@@ -3804,175 +3825,64 @@
       saveStoredData();
       closeModal('receiptConfirmModal');
       refreshDashboard();
-      showToast('レシートを登録しました！');
+      showToast('レシート明細を登録しました');
     }
 
-    function startReceiptTimer() {
-      receiptStartTime = Date.now();
-      const timerEl = document.getElementById('receiptTimerText');
-      if (timerEl) timerEl.textContent = '0.0秒';
-      clearInterval(receiptTimerInterval);
-      receiptTimerInterval = setInterval(() => {
-        const sec = ((Date.now() - receiptStartTime) / 1000).toFixed(1);
-        if (timerEl) timerEl.textContent = `${sec}秒`;
-      }, 100);
+    // ==================== エラー詳細・ユーティリティ ====================
+
+    function showErrorDetailModal(title, message, rawDetails) {
+      const titleEl = document.getElementById('errorModalTitle');
+      const msgEl = document.getElementById('errorModalMessage');
+      const rawEl = document.getElementById('errorModalRaw');
+      if (titleEl) titleEl.textContent = title || 'エラー';
+      if (msgEl) msgEl.textContent = message || '';
+      if (rawEl) rawEl.textContent = rawDetails || '';
+      openModal('errorDetailModal');
     }
 
-    function stopReceiptTimer() {
-      clearInterval(receiptTimerInterval);
-      if (!receiptStartTime) return '0.0';
-      return ((Date.now() - receiptStartTime) / 1000).toFixed(1);
-    }
-
-    function abortReceiptAndOpenManual() {
-      if (receiptAbortController) receiptAbortController.abort(new Error('ManualAbort'));
-      stopReceiptTimer();
-      showOverlay(false);
-      openManualModal('expense');
-    }
-
-    function openSyncMenuModal() {
-      openModal('syncModal');
-    }
-
-    async function exportToSheet() {
-      closeModal('syncModal');
-      if (!gasEndpoint) {
-        showToast('設定でGASのURLを登録してください', true);
-        openModal('settingsModal');
-        return;
-      }
-
-      showToast('スプシへ送信中...');
+    function copyErrorDetails() {
+      const rawEl = document.getElementById('errorModalRaw');
+      if (!rawEl) return;
+      const textarea = document.createElement('textarea');
+      textarea.value = rawEl.textContent;
+      document.body.appendChild(textarea);
+      textarea.select();
       try {
-        const resp = await fetch(gasEndpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: "syncAll", transactions })
-        });
-        const res = await resp.json();
-        if (res.status === 'success') showToast(`スプシへ送信完了 (${transactions.length}件)`);
-        else throw new Error(res.message);
-      } catch (e) {
-        showToast(`送信エラー: ${e.message}`, true);
+        document.execCommand('copy');
+        showToast('エラー詳細をコピーしました');
+      } catch (_) {
+        showToast('コピーに失敗しました', true);
       }
+      document.body.removeChild(textarea);
     }
 
-    async function executeImportFromSheet() {
-      closeModal('syncModal');
-      if (!gasEndpoint) {
-        showToast('設定でGASのURLを登録してください', true);
-        openModal('settingsModal');
-        return;
-      }
-
-      showToast('スプシから読み込み中...');
-      try {
-        const resp = await fetch(gasEndpoint, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ action: "getFromSheet" })
-        });
-        const res = await resp.json();
-        if (res.status === 'success' && Array.isArray(res.transactions)) {
-          transactions = res.transactions;
-          saveStoredData();
-          refreshDashboard();
-          showToast(`スプシから読込完了 (${transactions.length}件)`);
-        } else throw new Error();
-      } catch (e) {
-        showToast('スプシからの読込に失敗しました', true);
-      }
-    }
-
-    function saveApiKey() {
-      const key = document.getElementById('geminiApiKey').value.trim();
-      geminiApiKey = key;
-      saveStoredData();
-      showToast('Gemini APIキーを保存しました');
-    }
-
-    function saveGasUrl() {
-      const url = document.getElementById('gasUrl').value.trim();
-      gasEndpoint = url;
-      saveStoredData();
-      showToast('GAS URLを保存しました');
-    }
-
-    function switchView(viewName) {
-      document.querySelectorAll('main > section').forEach(sec => sec.classList.add('hidden'));
-      document.getElementById(`view-${viewName}`).classList.remove('hidden');
-
-      document.querySelectorAll('.tab-btn').forEach(btn => {
-        btn.classList.remove('text-blue-600', 'active');
-        btn.classList.add('text-slate-400');
-        btn.querySelector('span')?.classList.remove('font-bold');
-      });
-
-      const activeBtn = document.getElementById(`tab-${viewName}`);
-      if (activeBtn) {
-        activeBtn.classList.remove('text-slate-400');
-        activeBtn.classList.add('text-blue-600', 'active');
-        activeBtn.querySelector('span')?.classList.add('font-bold');
-      }
-
-      if (viewName === 'home') {
-        refreshDashboard();
-      } else if (viewName === 'analytics') {
-        // ホームで選択中の年月を分析画面にも自動同期
-        if (currentFilterMode === 'month' || currentFilterMode === 'current_month' || currentFilterMode === 'prev_month') {
-          analyticsYear = activeYear;
-          analyticsMonth = activeMonth;
-          const ySel = document.getElementById('trendYearSelect');
-          const mSel = document.getElementById('trendMonthSelect');
-          if (ySel) ySel.value = String(analyticsYear);
-          if (mSel) mSel.value = String(analyticsMonth);
-        }
-        updateTrendPeriodButtonsUI();
-        setTimeout(() => { renderAnalyticsCharts(); }, 60);
-      } else if (viewName === 'recurring') {
-        renderRecurringList();
-      }
-    }
-
-    function openModal(id) {
-      document.getElementById(id)?.classList.remove('hidden');
-    }
-
-    function closeModal(id) {
-      if (id === 'manualModal') {
-        closeManualPaymentDropdown();
-      } else if (id === 'receiptConfirmModal') {
-        closeReceiptPaymentDropdown();
-      } else if (id === 'recurringModal') {
-        closeRecPaymentDropdown();
-      }
-      document.getElementById(id)?.classList.add('hidden');
-    }
-
-    function showOverlay(show) {
-      document.getElementById('receiptLoadingOverlay')?.classList.toggle('hidden', !show);
-    }
-
-    let toastTimer = null;
     function showToast(msg, isError = false) {
       const toast = document.getElementById('toast');
       if (!toast) return;
       toast.textContent = msg;
-      toast.className = `fixed bottom-20 left-1/2 -translate-x-1/2 z-50 text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl transition-all duration-300 ${isError ? 'bg-rose-600 text-white' : 'bg-slate-900 text-white'}`;
-      toast.style.opacity = '1';
-      clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => { toast.style.opacity = '0'; }, 2400);
+      toast.className = `fixed bottom-20 left-1/2 -translate-x-1/2 z-[120] ${isError ? 'bg-rose-600' : 'bg-slate-900'} text-white text-xs font-bold px-4 py-2.5 rounded-full shadow-2xl transition-all duration-300 opacity-100 pointer-events-none whitespace-nowrap`;
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => {
+        toast.classList.remove('opacity-100');
+        toast.classList.add('opacity-0');
+      }, 2600);
     }
 
     function getTodayString() {
-      const d = new Date();
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = String(now.getMonth() + 1).padStart(2, '0');
+      const d = String(now.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
     }
 
     function escapeHtml(str) {
-      if (!str) return '';
-      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
   </script>
 </body>
