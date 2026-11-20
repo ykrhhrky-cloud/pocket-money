@@ -2412,8 +2412,8 @@
 
         // 項目（科目）バッジ
         const categoryBadge = isInc
-          ? `<span class="px-1.5 py-0.2 rounded bg-emerald-50 border border-emerald-200 text-[8.5px] font-bold text-emerald-700">${escapeHtml(t.category)}</span>`
-          : `<span class="px-1.5 py-0.2 rounded bg-rose-50 border border-rose-200 text-[8.5px] font-bold text-rose-700">${escapeHtml(t.category)}</span>`;
+          ? `<span class="px-1.5 py-0.2 rounded bg-emerald-50 border border-emerald-200 text-[8.5px] font-bold text-emerald-700 whitespace-nowrap flex-shrink-0">${escapeHtml(t.category)}</span>`
+          : `<span class="px-1.5 py-0.2 rounded bg-rose-50 border border-rose-200 text-[8.5px] font-bold text-rose-700 whitespace-nowrap flex-shrink-0">${escapeHtml(t.category)}</span>`;
 
         card.innerHTML = `
           <div class="flex items-center space-x-2 min-w-0 pr-2">
@@ -2425,17 +2425,17 @@
               <div class="flex items-center space-x-1.5">
                 ${newBadge}
                 <span class="text-xs font-bold text-slate-800 truncate">${escapeHtml(t.title || t.category)}</span>
-                <span class="text-[9px] font-semibold text-slate-400 font-mono">${displayDate}</span>
+                <span class="text-[9px] font-semibold text-slate-400 font-mono flex-shrink-0">${displayDate}</span>
               </div>
-              <div class="flex items-center space-x-1 mt-0.5">
+              <div class="flex items-center space-x-1 mt-0.5 min-w-0">
                 ${categoryBadge}
                 ${t.paymentMethod ? `
-                  <span class="inline-flex items-center space-x-0.5 px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 text-[8px] font-bold">
+                  <span class="inline-flex items-center space-x-0.5 px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 text-[8px] font-bold whitespace-nowrap flex-shrink-0">
                     ${payIcon}
-                    <span class="truncate max-w-[65px]">${escapeHtml(payMeta.name)}</span>
+                    <span>${escapeHtml(payMeta.name)}</span>
                   </span>
                 ` : ''}
-                ${t.memo ? `<span class="text-[9.5px] text-slate-400 truncate max-w-[100px]">${escapeHtml(t.memo)}</span>` : ''}
+                ${t.memo ? `<span class="text-[9.5px] text-slate-400 truncate min-w-0">${escapeHtml(t.memo)}</span>` : ''}
               </div>
             </div>
           </div>
